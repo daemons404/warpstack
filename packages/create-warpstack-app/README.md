@@ -8,8 +8,11 @@ the database.
 pnpm create warpstack-app my-app
 ```
 
-It asks for the app's name and iOS bundle ID in a terminal; an agent can pass them instead
-(`--name "My App" --bundle-id com.example.myapp --yes`). Then:
+It asks for the app's name and iOS bundle ID in a terminal. An agent passes them as flags
+(`--name "My App" --bundle-id com.yourname.myapp`); without them it stops and lists what to ask
+you. For a full agent-led setup, give your agent
+[this guide](https://github.com/daemons404/warpstack/blob/main/docs/setup-with-an-agent.md).
+Then:
 
 ```sh
 cd my-app

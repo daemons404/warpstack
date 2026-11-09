@@ -4,9 +4,9 @@
 //   pnpm create warpstack-app my-app
 //   pnpm create warpstack-app my-app --name "My App" --bundle-id com.example.myapp --yes
 //
-// It asks for what's missing when a person runs it in a terminal, and never asks otherwise:
-// an agent passes flags, or gets the defaults. Its output is plain lines, ending in what to
-// run next.
+// It asks for what's missing when a person runs it in a terminal. Without a terminal (an agent
+// running it), it never guesses: it stops and lists the questions to ask the person, unless
+// --yes says the defaults are fine. Its output is plain lines, ending in what to run next.
 import { spawnSync } from 'node:child_process'
 import { readdirSync } from 'node:fs'
 import { basename, join, relative, resolve } from 'node:path'
@@ -22,7 +22,8 @@ Creates a Warpstack app: a Farcaster client for iPhone and the web, and its own 
 Options:
   --name <name>          The app's name, as on the home screen (default: from the folder)
   --bundle-id <id>       The iOS bundle ID, like com.example.myapp
-  --yes                  Use the defaults for anything not given; never ask
+  --yes                  Use the defaults for anything not given (without a terminal,
+                         the generator otherwise stops and lists what to ask)
   --no-install           Don't run pnpm install
   --tarballs <folder>    Install @warpstack packages from packed tarballs (for testing)
   --help                 Show this
@@ -51,6 +52,27 @@ const unknown = args.find(a => a.startsWith('--') && !known.has(a))
 if (unknown) stop(`Unknown option ${unknown}.\n\n${HELP}`)
 
 const interactive = process.stdin.isTTY && process.stdout.isTTY && !flag('yes')
+
+// An agent runs this without a terminal. Rather than naming someone's app with defaults, stop
+// and say what to ask them.
+if (!interactive && !flag('yes')) {
+  const missing = [
+    positional[0] === undefined && '  - What folder should the app go in? (the first argument)',
+    option('name') === undefined && '  - What should the app be called? It\'s the name on the home screen. (--name "My App")',
+    option('bundle-id') === undefined && '  - What iOS bundle ID? Like com.yourname.myapp. (--bundle-id com.yourname.myapp)',
+  ].filter(Boolean)
+  if (missing.length > 0) {
+    stop(`Some choices are missing, and they belong to the person you're setting this up for. Ask them:
+
+${missing.join('\n')}
+
+Then run it again with the answers, for example:
+  pnpm create warpstack-app my-app --name "My App" --bundle-id com.yourname.myapp
+
+Setting it up end to end: https://github.com/daemons404/warpstack/blob/main/docs/setup-with-an-agent.md
+(Or pass --yes to use the defaults.)`)
+  }
+}
 const rl = interactive ? createInterface({ input: process.stdin, output: process.stdout }) : null
 /** Asks until `check` passes; without a terminal, takes the default or stops with the problem. */
 const ask = async (question: string, fallback: string, check: (v: string) => string | null): Promise<string> => {
