@@ -1,0 +1,15 @@
+# @warpstack/client
+
+Warpstack's headless data layer: a typed API client, entity store, account and viewer state, and React hooks in `@warpstack/client/react`.
+
+**Use it alone for:** A custom UI in any React or React Native app, against any Warpstack server.
+
+Part of [Warpstack](https://github.com/daemons404/warpstack), simple, feature-complete building blocks for Farcaster clients:
+users hold their own keys, Snapchain is the database, and Cloudflare runs everything. Start a
+complete app with `pnpm create warpstack-app my-app`. See the
+[architecture](https://github.com/daemons404/warpstack/blob/main/docs/architecture.md) and
+[security](https://github.com/daemons404/warpstack/blob/main/docs/security.md) docs.
+
+**Early and changing fast:** not independently audited; use at your own risk. Breaking changes are likely before 1.0.
+
+MIT licensed.

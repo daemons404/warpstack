@@ -1,0 +1,45 @@
+{
+  "name": "@warpstack/protocol",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daemons404/warpstack.git",
+    "directory": "packages/protocol"
+  },
+  "homepage": "https://github.com/daemons404/warpstack#readme",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "pnpm run build"
+  },
+  "dependencies": {
+    "@noble/curves": "catalog:",
+    "@noble/hashes": "catalog:",
+    "@scure/bip39": "catalog:"
+  },
+  "devDependencies": {
+    "@farcaster/core": "catalog:",
+    "@types/node": "catalog:",
+    "viem": "catalog:"
+  },
+  "description": "Builds, signs and checks Farcaster messages: branded types, message builders and hashes, gasless key typed data, signature checks and session challenges. Runs in any TypeScript runtime."
+}

@@ -1,0 +1,21 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden replay of recorded pages > folds two real pages from the public node into a known index 1`] = `
+{
+  "casts": 86,
+  "channelCasts": 6,
+  "counted": 258,
+  "recasts": 14,
+  "replies": 32,
+  "tombstones": 2,
+  "users": 2,
+}
+`;
+
+exports[`golden replay of recorded pages > folds two real pages from the public node into a known index 2`] = `
+{
+  "lastBlockTs": 1792885806,
+  "lastEventId": 811688919040,
+  "shard": 1,
+}
+`;

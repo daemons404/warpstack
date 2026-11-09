@@ -1,0 +1,24 @@
+{
+  // Bindings for the Miniflare suite (test/workers). Upstream calls go to a host that doesn't
+  // exist, so tests serve what they need from the index or fail as UPSTREAM_UNAVAILABLE.
+  "name": "warpstack-api-test",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-01",
+  "d1_databases": [{ "binding": "DB", "database_name": "test-index", "database_id": "test", "migrations_dir": "migrations" }],
+  "durable_objects": { "bindings": [{ "name": "INGEST", "class_name": "IngestionObject" }, { "name": "USER", "class_name": "UserObject" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["IngestionObject"] }, { "tag": "v2", "new_sqlite_classes": ["UserObject"] }],
+  "ratelimits": [
+    { "name": "READ_IP", "namespace_id": "1001", "simple": { "limit": 1000, "period": 60 } },
+    { "name": "UPSTREAM_IP", "namespace_id": "1002", "simple": { "limit": 1000, "period": 60 } },
+    { "name": "WRITE_FID", "namespace_id": "1003", "simple": { "limit": 1000, "period": 60 } }
+  ],
+  "vars": {
+    "SNAPCHAIN_URL": "https://snapchain.invalid",
+    "CHANNEL_REGISTRY": "seeded",
+    "CURSOR_MAC_KEY": "test-key-test-key-test-key-test-key",
+    "SESSION_MAC_KEY": "test-session-key-test-session-key",
+    "CANONICAL_ORIGIN": "https://reader.test",
+    // The suite tests the open client; private.workers.test.ts runs the same Worker private.
+    "ACCESS": "public"
+  }
+}

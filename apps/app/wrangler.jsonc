@@ -1,0 +1,61 @@
+{
+  // The Warpstack API Worker and the Expo app's web export, deployed together.
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "warpstack",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-01",
+  // Workers Cache in front of the Worker serves public reads by their Cache-Control, and
+  // bypasses any request with an Authorization header.
+  "cache": { "enabled": true },
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+    // API and ops paths always reach the Worker, so a mistyped API path gets the
+    // contract's NOT_FOUND instead of the web app (Cloudflare review, finding 6).
+    "run_worker_first": ["/api/*", "/_ops/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "warpstack-index",
+      // Replaced by `wrangler d1 create` output before the first deploy.
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "../../packages/api/migrations"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      { "name": "INGEST", "class_name": "IngestionObject" },
+      // One per FID that has signed in: sessions and the user's own history.
+      { "name": "USER", "class_name": "UserObject" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["IngestionObject"] },
+    { "tag": "v2", "new_sqlite_classes": ["UserObject"] }
+  ],
+  // Rate Limiting bindings: 10- or 60-second windows, counted per location.
+  "ratelimits": [
+    { "name": "READ_IP", "namespace_id": "1001", "simple": { "limit": 600, "period": 60 } },
+    { "name": "UPSTREAM_IP", "namespace_id": "1002", "simple": { "limit": 120, "period": 60 } },
+    // Writes per FID, counted after the message's signature checks out.
+    { "name": "WRITE_FID", "namespace_id": "1003", "simple": { "limit": 60, "period": 60 } },
+    // Untrusted fetches (images, link previews) across the deployment, per location: the cost guard.
+    { "name": "FETCH_ALL", "namespace_id": "1004", "simple": { "limit": 120, "period": 60 } }
+  ],
+  // Images. Created by `pnpm media`; the media Worker
+  // (wrangler.media.jsonc) serves this bucket on its own origin, set as MEDIA_ORIGIN.
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "warpstack-media" }],
+  // Every image is re-encoded by Cloudflare before it is stored. Remote even in `wrangler dev`:
+  // hostile images are never decoded on your machine.
+  "images": { "binding": "IMAGES", "remote": true },
+  "triggers": {
+    // Watchdog every minute; prune and channel refresh daily (see packages/api/src/scheduled.ts).
+    "crons": ["* * * * *", "17 3 * * *"]
+  },
+  "vars": {
+    "SNAPCHAIN_URL": "https://snap.farcaster.xyz:3381",
+    "CHANNEL_REGISTRY": "farcaster"
+  },
+  "observability": { "enabled": true }
+}

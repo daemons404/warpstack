@@ -1,0 +1,29 @@
+{
+  "name": "warpstack",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm test:workers",
+    "typecheck": "pnpm -r --parallel typecheck",
+    "lint": "eslint .",
+    "test": "vitest run --project unit",
+    "test:workers": "pnpm --filter @warpstack/api test:workers",
+    "dev": "pnpm --filter @warpstack/app dev",
+    "deploy": "pnpm --filter @warpstack/app run deploy",
+    "web": "pnpm --filter @warpstack/app web",
+    "dev:remote": "pnpm --filter @warpstack/app dev:remote"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.0",
+    "eslint": "^10.14.0",
+    "fast-check": "^4.0.0",
+    "typescript": ">=5.9.0 <6.1.0",
+    "typescript-eslint": "^8.72.1",
+    "vitest": "catalog:"
+  }
+}

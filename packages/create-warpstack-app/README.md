@@ -1,0 +1,26 @@
+# create-warpstack-app
+
+Creates a [Warpstack](https://github.com/daemons404/warpstack) app: a Farcaster client for
+iPhone and the web, and its own server on Cloudflare. Your keys stay on your phone; Snapchain is
+the database.
+
+```sh
+pnpm create warpstack-app my-app
+```
+
+It asks for the app's name and iOS bundle ID in a terminal; an agent can pass them instead
+(`--name "My App" --bundle-id com.example.myapp --yes`). Then:
+
+```sh
+cd my-app
+cp .dev.vars.example .dev.vars    # fill it in: openssl rand -hex 32 makes a key
+pnpm dev                          # your server and web app on localhost, no Cloudflare account
+```
+
+Your own server: the app's `SETUP.md` (about ten minutes, then `pnpm run deploy --fid <your FID>`).
+The iPhone app needs Xcode and Rust: `EXPO_PUBLIC_API_URL=<your server> pnpm run ios:release`.
+
+**Early and changing fast:** Warpstack hasn't been independently audited. Use it at your own
+risk, and expect breaking changes before 1.0.
+
+Needs Node 22 or later and pnpm 10. MIT licensed.

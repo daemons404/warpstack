@@ -1,0 +1,53 @@
+# The vault's Rust core (sealed): format, lints, tests against the reference vectors, and
+# cargo-deny (advisories, licenses, banned crates, sources). Runs when the core or the
+# vectors change.
+name: rust
+on:
+  pull_request:
+    paths:
+      - packages/wallet/native/rust/**
+      - packages/wallet/vectors/**
+      - .github/workflows/rust.yml
+  push:
+    branches: [main]
+    paths:
+      - packages/wallet/native/rust/**
+      - packages/wallet/vectors/**
+      - .github/workflows/rust.yml
+permissions:
+  contents: read
+concurrency:
+  group: rust-${{ github.ref }}
+  cancel-in-progress: true
+defaults:
+  run:
+    working-directory: packages/wallet/native/rust
+jobs:
+  rust:
+    name: rust
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # rustup is on the runner; rust-toolchain.toml pins the version.
+      - run: rustup component add rustfmt clippy
+      - run: cargo fmt --check
+      - run: cargo clippy --locked --all-targets --all-features -- -D warnings
+      - run: cargo test --locked
+
+  deny:
+    name: deny
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.1.1
+        with:
+          manifest-path: packages/wallet/native/rust/Cargo.toml
+          command: check
+          # cargo-deny finds deny.toml next to the manifest.
+          arguments: --all-features

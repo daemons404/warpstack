@@ -1,0 +1,64 @@
+{
+  "name": "@warpstack/app-core",
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daemons404/warpstack.git",
+    "directory": "packages/app-core"
+  },
+  "homepage": "https://github.com/daemons404/warpstack#readme",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.test.tsx"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "pnpm run build"
+  },
+  "dependencies": {
+    "@warpstack/client": "workspace:*",
+    "@warpstack/contract": "workspace:*",
+    "@warpstack/protocol": "workspace:*",
+    "@warpstack/wallet": "workspace:*",
+    "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.80.0",
+    "expo": "^58.0.0",
+    "expo-file-system": "^58.0.0",
+    "expo-image-manipulator": "^58.0.0",
+    "expo-image-picker": "^58.0.0",
+    "expo-secure-store": "^58.0.0",
+    "react": "^19.1.0",
+    "react-native": "~0.88.0"
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "catalog:",
+    "@types/react": "catalog:",
+    "expo": "catalog:",
+    "expo-file-system": "catalog:",
+    "expo-image-manipulator": "catalog:",
+    "expo-image-picker": "catalog:",
+    "expo-secure-store": "catalog:",
+    "react": "catalog:",
+    "react-native": "catalog:"
+  },
+  "description": "Warpstack's composition root: config, providers and typed links. Renders nothing."
+}

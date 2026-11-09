@@ -1,0 +1,10 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  // The media origin: its own Worker and hostname, so an image
+  // can never run as a page on the API's origin. It reads R2 and fetches nothing.
+  "name": "warpstack-media",
+  "main": "src/media.ts",
+  "compatibility_date": "2026-10-01",
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "warpstack-media" }],
+  "observability": { "enabled": true }
+}

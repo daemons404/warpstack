@@ -1,0 +1,38 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`OpenAPI > documents every route with its facts as extensions 1`] = `
+[
+  "/api/casts/{fid}/{hash}",
+  "/api/casts/{fid}/{hash}/embeds/{index}",
+  "/api/casts/{fid}/{hash}/reactors",
+  "/api/casts/{fid}/{hash}/thread",
+  "/api/channels",
+  "/api/channels/{key}",
+  "/api/channels/{key}/feed",
+  "/api/feed/following",
+  "/api/media",
+  "/api/messages",
+  "/api/messages/status",
+  "/api/meta",
+  "/api/notifications",
+  "/api/notifications/seen",
+  "/api/notifications/unseen",
+  "/api/session/challenge",
+  "/api/session/end",
+  "/api/session/media",
+  "/api/session/verify",
+  "/api/signers",
+  "/api/signers/registration",
+  "/api/signers/request",
+  "/api/usernames/{username}",
+  "/api/users",
+  "/api/users/{fid}",
+  "/api/users/{fid}/feed",
+  "/api/users/{fid}/followers",
+  "/api/users/{fid}/following",
+  "/api/users/{fid}/storage",
+  "/api/viewer/channels",
+  "/api/viewer/links",
+  "/api/viewer/reactions",
+]
+`;

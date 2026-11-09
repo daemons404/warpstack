@@ -1,0 +1,47 @@
+{
+  "name": "@warpstack/contract",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daemons404/warpstack.git",
+    "directory": "packages/contract"
+  },
+  "homepage": "https://github.com/daemons404/warpstack#readme",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.snap"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "pnpm run build"
+  },
+  "dependencies": {
+    "@orpc/contract": "catalog:",
+    "@orpc/openapi": "catalog:",
+    "@warpstack/protocol": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@orpc/client": "catalog:",
+    "@orpc/json-schema": "catalog:",
+    "@orpc/server": "catalog:"
+  },
+  "description": "Every Warpstack API route as typed facts (path, auth, freshness, cost) with Zod schemas for every entity. The OpenAPI file is derived from it."
+}

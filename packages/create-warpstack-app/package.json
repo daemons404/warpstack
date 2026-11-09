@@ -1,0 +1,32 @@
+{
+  "name": "create-warpstack-app",
+  "version": "0.1.0",
+  "description": "Create a Warpstack app: a sovereign Farcaster client for iPhone and the web, with its own server.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daemons404/warpstack.git",
+    "directory": "packages/create-warpstack-app"
+  },
+  "homepage": "https://github.com/daemons404/warpstack#readme",
+  "bin": {
+    "create-warpstack-app": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.test.*",
+    "template"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json && node scripts/build-template.mjs",
+    "prepack": "pnpm run build"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:"
+  }
+}

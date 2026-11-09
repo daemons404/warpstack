@@ -1,0 +1,13 @@
+# Copy to .dev.vars for `pnpm dev`. Generate the key with: openssl rand -hex 32
+CURSOR_MAC_KEY=
+# Optional: fill only the last few hours locally instead of everything the node holds.
+INGEST_BACKFILL_HOURS=2
+# MACs session challenges and tokens. At least 32 characters: openssl rand -hex 32
+SESSION_MAC_KEY=
+# The origin the phone signs in to: the URL its EXPO_PUBLIC_API_URL points at, with no path.
+# http://localhost:8787 on this machine, or your https tunnel's origin when a phone reaches it.
+CANONICAL_ORIGIN=http://localhost:8787
+# Who may use this deployment (required unless ACCESS=public): your FID, comma-separated for more.
+ALLOWED_FIDS=
+# Optional: `public` opens reads to anyone and sign-in to any FID, like an open Farcaster client.
+# ACCESS=public

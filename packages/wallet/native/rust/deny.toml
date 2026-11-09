@@ -1,0 +1,68 @@
+# cargo-deny for the vault core (sealed). CI runs `cargo deny check` on every change here.
+# Changing this file is a sealed-core change: a human approves it.
+
+[graph]
+# What ships: the phone's two targets. Build-only and test-only crates are checked too.
+targets = ["aarch64-apple-ios", "aarch64-apple-ios-sim"]
+all-features = true
+
+[advisories]
+# Every RustSec advisory fails the build: vulnerabilities, unmaintained and unsound crates and
+# yanked versions. An exception is added here, with its reason, only by a human.
+version = 2
+yanked = "deny"
+unmaintained = "all"
+ignore = [
+  # crypto-bigint 0.5.5: some operations may branch on secret values (a timing side channel).
+  # It comes from k256 0.13 through alloy-signer and coins-bip32, which the vault uses for the
+  # custody key: phrase derivation and its few signatures per sign-in. The fix (0.7.6+) needs
+  # k256 0.14, and no alloy release has it yet (alloy-rs/core#1147). alloy ignores this
+  # advisory for the same reason. Remove this once alloy and coins-bip32 move to k256 0.14,
+  # and before the vault holds the custody key or signs more often.
+  # https://rustsec.org/advisories/RUSTSEC-2026-0387
+  "RUSTSEC-2026-0387",
+  # paste is unmaintained. A proc macro used by alloy-primitives at compile time; nothing of it
+  # ships. alloy ignores it too. https://rustsec.org/advisories/RUSTSEC-2024-0436
+  "RUSTSEC-2024-0436",
+  # basic-toml is unmaintained. Used by uniffi's code generator (askama) at compile time;
+  # nothing of it ships. https://rustsec.org/advisories/RUSTSEC-2026-0374
+  "RUSTSEC-2026-0374",
+]
+
+[licenses]
+version = 2
+# Permissive licenses, and MPL-2.0 (uniffi): file-level copyleft that ships unchanged inside an
+# MIT app.
+allow = [
+  "MIT",
+  "MIT-0",
+  "Apache-2.0",
+  "Apache-2.0 WITH LLVM-exception",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "CC0-1.0",
+  "MPL-2.0",
+  "Unicode-3.0",
+  "Unlicense",
+  "Zlib",
+]
+confidence-threshold = 0.9
+
+[bans]
+# One version of each crate where possible; a duplicate is a warning to look at, not a failure.
+multiple-versions = "warn"
+wildcards = "deny"
+# The vault does no I/O: no network or async runtime may enter it.
+deny = [
+  { name = "reqwest" },
+  { name = "hyper" },
+  { name = "tokio" },
+  { name = "openssl" },
+  { name = "openssl-sys" },
+]
+
+[sources]
+# crates.io only: no git dependencies, no other registries.
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

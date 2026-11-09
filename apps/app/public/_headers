@@ -1,0 +1,10 @@
+# The web has no code-signed bundle, so the page is the trust boundary: no inline or
+# third-party script, and images only from this origin and the deployment's media origin,
+# which `scripts/web-headers.mjs` adds at build time from MEDIA_ORIGIN. Inline styles are
+# allowed: Expo's reset and react-native-web's runtime styles are inline, and styles can't run
+# code.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()

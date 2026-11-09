@@ -1,0 +1,50 @@
+# Dependabot watches the dependencies, but opens no version-update PRs for now
+# (open-pull-requests-limit: 0): updates are applied in batches, tested together, and committed
+# directly while the repository is private. Security alerts stay on, and security fixes still
+# arrive as PRs. Raise the limits again when outside contributors start sending PRs. Every update
+# waits 7 days after its release, matching `minimumReleaseAge` in pnpm-workspace.yaml.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 0
+    groups:
+      dev-tools:
+        dependency-type: development
+    ignore:
+      # Expo and React Native move together with the Expo SDK, at the versions the SDK names
+      # (bundledNativeModules.json); a newer patch of a native module has crashed the app.
+      - dependency-name: expo
+      - dependency-name: "expo-*"
+      - dependency-name: "@expo/*"
+      - dependency-name: react-native
+      - dependency-name: "react-native-*"
+      # Majors decided against for now: TypeScript 7 (the rewrite; the repo pins <6.1), and
+      # Node's types past the Node version Warpstack supports (22).
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: cargo
+    directory: /packages/wallet/native/rust
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 0
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 0
+    groups:
+      actions:
+        patterns: ["*"]

@@ -1,0 +1,12 @@
+{
+  // The published build, shared by every package's tsconfig.build.json: plain tsc to dist,
+  // with `.ts` imports rewritten to `.js`, declarations and source maps that point into src.
+  "compilerOptions": {
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "rewriteRelativeImportExtensions": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  }
+}

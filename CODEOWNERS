@@ -1,0 +1,32 @@
+# Who must approve a change. With "require review from code owners" on main, nothing below
+# merges without the owner's approval (or a logged admin bypass, while there's one maintainer).
+
+# Everything, by default.
+*                                       @daemons404
+
+# The sealed core: a human approves every change (overview, Keeping long-term maintenance safe).
+/packages/protocol/                     @daemons404
+/packages/wallet/                       @daemons404
+/packages/api/src/adapters/fetchers/    @daemons404
+**/vectors/                             @daemons404
+
+# What decides who can act as a user, and what the server will fetch.
+/packages/api/src/sessions.ts           @daemons404
+/packages/api/src/user-object.ts        @daemons404
+/packages/api/src/user-store.ts         @daemons404
+/packages/api/src/front.ts              @daemons404
+/packages/api/src/media.ts              @daemons404
+/packages/api/src/media-worker.ts       @daemons404
+/packages/contract/                     @daemons404
+
+# The rules themselves: CI, ownership, lint, supply chain and deploy. A change here could
+# switch a check off, so it's reviewed like code.
+/CODEOWNERS                             @daemons404
+/.github/                               @daemons404
+/eslint.config.js                       @daemons404
+/pnpm-workspace.yaml                    @daemons404
+/pnpm-lock.yaml                         @daemons404
+/scripts/                               @daemons404
+/packages/wallet/native/rust/deny.toml  @daemons404
+/apps/app/scripts/                      @daemons404
+/apps/app/wrangler*.jsonc               @daemons404

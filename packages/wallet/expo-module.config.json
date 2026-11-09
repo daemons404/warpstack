@@ -1,0 +1,7 @@
+{
+  "platforms": ["apple"],
+  "apple": {
+    "modules": ["WarpstackVaultModule"],
+    "podspecPath": "native/ios/WarpstackVault.podspec"
+  }
+}

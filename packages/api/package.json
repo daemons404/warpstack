@@ -1,0 +1,66 @@
+{
+  "name": "@warpstack/api",
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daemons404/warpstack.git",
+    "directory": "packages/api"
+  },
+  "homepage": "https://github.com/daemons404/warpstack#readme",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./worker": "./src/worker.ts",
+    "./media": "./src/media-worker.ts"
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.test.tsx",
+    "migrations"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./worker": {
+        "types": "./dist/worker.d.ts",
+        "default": "./dist/worker.js"
+      },
+      "./media": {
+        "types": "./dist/media-worker.d.ts",
+        "default": "./dist/media-worker.js"
+      }
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json && tsc -p test/tsconfig.json",
+    "test:workers": "vitest run --config vitest.workers.config.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "pnpm run build"
+  },
+  "dependencies": {
+    "@orpc/client": "catalog:",
+    "@orpc/json-schema": "catalog:",
+    "@orpc/openapi": "catalog:",
+    "@orpc/server": "catalog:",
+    "@warpstack/contract": "workspace:*",
+    "@warpstack/protocol": "workspace:*",
+    "hono": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.5.0",
+    "@cloudflare/workers-types": "catalog:",
+    "@noble/curves": "catalog:",
+    "@types/node": "catalog:",
+    "vitest": "catalog:",
+    "wrangler": "catalog:"
+  },
+  "description": "The Warpstack server as a Cloudflare Worker: follows Snapchain into a D1 cast index, serves the contract, keeps each user's private state in a Durable Object, and fetches untrusted links and images through restricted fetchers. Holds no key that can act as a user."
+}

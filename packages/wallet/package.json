@@ -1,0 +1,61 @@
+{
+  "name": "@warpstack/wallet",
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daemons404/warpstack.git",
+    "directory": "packages/wallet"
+  },
+  "homepage": "https://github.com/daemons404/warpstack#readme",
+  "type": "module",
+  "description": "Warpstack's phone vault: the recovery phrase in Rust, the app key in the Keychain wrapped by the Secure Enclave. Built from source on your machine.",
+  "exports": {
+    "./native": "./src/native/index.ts"
+  },
+  "bin": {
+    "warpstack-vault-build": "native/build-ios.sh"
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "expo-module.config.json",
+    "vectors",
+    "native/build-ios.sh",
+    "native/ios/*.swift",
+    "native/ios/*.podspec",
+    "native/rust/Cargo.toml",
+    "native/rust/Cargo.lock",
+    "native/rust/rust-toolchain.toml",
+    "native/rust/deny.toml",
+    "native/rust/uniffi-bindgen.rs",
+    "native/rust/src",
+    "native/rust/tests"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      "./native": {
+        "types": "./dist/native/index.d.ts",
+        "default": "./dist/native/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "build:ios": "sh native/build-ios.sh",
+    "test:native": "cd native/rust && cargo test --locked",
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "pnpm run build"
+  },
+  "dependencies": {
+    "@warpstack/protocol": "workspace:*"
+  },
+  "devDependencies": {
+    "@farcaster/core": "catalog:",
+    "@noble/curves": "catalog:",
+    "@types/node": "catalog:",
+    "viem": "catalog:"
+  }
+}

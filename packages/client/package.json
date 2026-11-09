@@ -1,0 +1,74 @@
+{
+  "name": "@warpstack/client",
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daemons404/warpstack.git",
+    "directory": "packages/client"
+  },
+  "homepage": "https://github.com/daemons404/warpstack#readme",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./react": "./src/react/index.tsx"
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts",
+    "!src/**/*.test.tsx"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./react": {
+        "types": "./dist/react/index.d.ts",
+        "default": "./dist/react/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "pnpm run build"
+  },
+  "dependencies": {
+    "@orpc/client": "catalog:",
+    "@orpc/contract": "catalog:",
+    "@orpc/openapi": "catalog:",
+    "@warpstack/contract": "workspace:*",
+    "@warpstack/protocol": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@farcaster/core": "catalog:",
+    "@noble/curves": "catalog:",
+    "@tanstack/react-query": "catalog:",
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@warpstack/wallet": "workspace:*",
+    "happy-dom": "^21.0.4",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "viem": "catalog:"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.80.0",
+    "react": "^19.1.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "@tanstack/react-query": {
+      "optional": true
+    }
+  },
+  "description": "Warpstack's headless data layer: a typed API client, entity store, account and viewer state, and React hooks in `@warpstack/client/react`."
+}
