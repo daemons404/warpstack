@@ -152,6 +152,20 @@ wrangler.deploy.jsonc
 
 writeFileSync(join(out, 'AGENTS.md'), `${read(join(out, 'AGENTS.md')).trimEnd()}
 
+## Ask the person, don't decide
+
+These choices belong to the person you're working for. Ask them; never pick a default:
+
+- the app's name and iOS bundle ID (\`app.json\`);
+- who may use the server: the FIDs in \`ALLOWED_FIDS\` or \`--fid\`, or \`ACCESS=public\` (only when
+  they ask for it);
+- anything that costs money, or needs their accounts: Cloudflare, Apple, npm.
+
+Never ask for, read or handle a recovery phrase: it's typed only into the phone app's own screen.
+Never open, print or copy \`.env.deploy\` (their Cloudflare token). You may write \`.dev.vars\`
+with keys you generate, but never print its contents. Setting up from scratch:
+https://github.com/daemons404/warpstack/blob/main/docs/setup-with-an-agent.md
+
 ## This project
 
 This app was made with \`create-warpstack-app\`. The building blocks are npm packages
@@ -163,7 +177,7 @@ configuration.
 - \`@warpstack/protocol\` and \`@warpstack/wallet\` are the sealed core: they sign for the user.
   Use them through their public APIs only.
 - \`pnpm typecheck\` checks the app and the Worker. \`.dev.vars\` and \`.env.deploy\` hold secrets:
-  never print, commit or paste them.
+  never commit them.
 - Setting up a server: SETUP.md. Building the iPhone app needs Xcode and Rust:
   \`pnpm run ios:release\` builds the vault from source, then the app.
 `)
@@ -177,9 +191,11 @@ phone; Snapchain is the database.
 ## Run it here
 
 \`\`\`sh
-cp .dev.vars.example .dev.vars    # then fill it in: openssl rand -hex 32 makes a key
-pnpm dev                          # the server and web app on localhost, no Cloudflare account
+cp .dev.vars.example .dev.vars
 \`\`\`
+
+Fill in \`.dev.vars\` (\`openssl rand -hex 32\` makes a key), then run \`pnpm dev\`: the server
+and web app on localhost, with no Cloudflare account.
 
 ## Your own server
 

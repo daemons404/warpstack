@@ -35,6 +35,7 @@ apps
 docs/architecture.md
 docs/brand
 docs/security.md
+docs/setup-with-an-agent.md
 eslint.config.js
 package.json
 packages
