@@ -28,7 +28,8 @@ enforced by a check (a test, a lint rule or CI), not by review.
 5. **Nothing is signed blind.** Native code decodes what it signs and refuses what it can't
    explain.
 6. **Untrusted content is handled once, on the server, behind strict limits.** A phone never
-   loads a URL someone posted.
+   loads a URL someone posted, with one exception the server decides: videos, on a tap, from
+   Farcaster's own video servers or the deployment's own uploads.
 
 **Architecture**
 

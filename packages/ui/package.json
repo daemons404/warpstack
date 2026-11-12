@@ -41,6 +41,7 @@
   "peerDependencies": {
     "expo-image": "^58.0.0",
     "expo-router": "^58.0.0",
+    "expo-video": "^58.0.0",
     "react": "^19.1.0",
     "react-native": "~0.88.0",
     "react-native-svg": "^15.16.0"
@@ -50,6 +51,7 @@
     "@types/react": "catalog:",
     "expo-image": "catalog:",
     "expo-router": "catalog:",
+    "expo-video": "catalog:",
     "react": "catalog:",
     "react-native": "catalog:",
     "react-native-svg": "catalog:"

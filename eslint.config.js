@@ -46,10 +46,10 @@ export default tseslint.config(
     },
   },
   {
-    // Untrusted URLs are fetched only by the fetchers (sealed core). The Snapchain and
-    // channel-registry adapters fetch fixed, operator-configured hosts.
+    // Untrusted URLs are fetched only by the fetchers (sealed core). The Snapchain,
+    // channel-registry and Stream adapters fetch fixed, operator-configured hosts.
     files: ['packages/api/src/**/*.ts'],
-    ignores: ['packages/api/src/adapters/snapchain-http.ts', 'packages/api/src/adapters/channel-registry.ts', 'packages/api/src/adapters/fetchers/**'],
+    ignores: ['packages/api/src/adapters/snapchain-http.ts', 'packages/api/src/adapters/channel-registry.ts', 'packages/api/src/adapters/stream.ts', 'packages/api/src/adapters/fetchers/**'],
     rules: {
       'no-restricted-globals': ['error', { name: 'fetch', message: 'Only the fetchers and fixed-host adapters may call fetch.' }],
     },

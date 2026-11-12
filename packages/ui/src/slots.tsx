@@ -8,6 +8,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { ActivityIndicator, Image, Linking, Platform, Pressable, StyleSheet, Text, View, type TextStyle } from 'react-native'
 import { HeartIcon, LinkIcon, MoreIcon, PencilIcon, RecastIcon, ReplyIcon, XIcon } from './icons.tsx'
 import { ActionSheet } from './sheet.tsx'
+import { VideoEmbed, webPlaysHls } from './video.tsx'
 import { AVATAR, HIT, HUES, radius, space, type, useColors } from './theme.ts'
 
 // Slots: the pieces screens are built from. Images only ever come from the deployment's media
@@ -233,11 +234,13 @@ type ImageMeta = Extract<EmbedMetadata, { kind: 'image' }>
 type LinkMeta = Extract<EmbedMetadata, { kind: 'link' }>
 const isImage = (m: EmbedMetadata | undefined): m is ImageMeta => m?.kind === 'image' && 'media' in m
 const isLink = (m: EmbedMetadata | undefined): m is LinkMeta => m?.kind === 'link' && 'domain' in m
+const isVideo = (m: EmbedMetadata | undefined): m is Extract<EmbedMetadata, { kind: 'video' }> => m?.kind === 'video' && 'url' in m
 
 const UrlEmbed = ({ cast, index, url, host, fallback }: { cast: Cast; index: number; url: string; host: string; fallback: string }) => {
   const meta = useEmbed(cast, index)
   const m = meta.data
   if (isImage(m)) return <StoredImage media={m.media} width={m.width} height={m.height} />
+  if (isVideo(m) && webPlaysHls()) return <VideoEmbed video={m} />
   if (isLink(m) && isX(m.domain) && m.title && m.description) return <XPostCard url={url} title={m.title} text={m.description} />
   if (isLink(m) && (m.title || m.image)) return <LinkCard url={url} meta={m} />
   return <LinkChip url={url} label={m && 'domain' in m ? String(m.domain) : m ? host : fallback} />
@@ -256,8 +259,8 @@ const Embeds = ({ cast }: { cast: Cast }) => {
             : <View key={index} style={[styles.chip, { borderColor: c.border }]}><Text style={[type.small, { color: c.muted }]}>Quoted cast unavailable</Text></View>
         }
         const label = v!.kind === 'image' ? `Image · ${v!.host}` : v!.kind === 'video' ? `Video · ${v!.host}` : v!.host
-        // Video isn't played in-app yet; it stays a link.
-        if (v!.kind === 'video') return <LinkChip key={index} url={v!.url} label={label} />
+        // A video plays only if the server says it may (Farcaster's servers or this server's
+        // uploads); anything else stays a link.
         return <UrlEmbed key={index} cast={cast} index={index} url={v!.url} host={v!.host} fallback={label} />
       })}
     </View>

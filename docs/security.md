@@ -95,8 +95,9 @@ can rebuild from Snapchain, except the per-user state listed above.
   needs a session.
 - **Not an open relay.** Writes need a session whose FID matches the message. The one exception
   is registering a key, which is signed by the account's recovery phrase.
-- **Few secrets.** The server holds two MAC keys (for cursors and sessions) and optionally a
-  media key. None of them can act as a user. The deploy never rotates them silently.
+- **Few secrets.** The server holds two MAC keys (for cursors and sessions), optionally a
+  media key, and optionally a Stream token that can do nothing but Stream. None of them can act
+  as a user. The deploy never rotates them silently.
 - **If your Cloudflare account is compromised,** an attacker controls what you see and can read
   the per-user state, as in the table above. They can't sign as you. Remove the deployment and
   your keys still work with any other Farcaster app.
@@ -114,6 +115,21 @@ so posting a link can't reveal your IP address or deliver an exploit:
   and initials only.
 - **Images are served from a separate origin,** so they can't run in the API's context.
 - **Uploads are treated the same way,** after the phone strips location and camera metadata.
+
+**Videos are the one exception, and the server decides it.** Re-encoding video on every
+request isn't affordable, so a phone plays a video directly, and only on a tap, from two places:
+
+- **Farcaster's own video servers** (`stream.warpcast.com`, `stream.farcaster.xyz`), as the
+  Farcaster client does.
+- **This deployment's own uploads,** on its Cloudflare Stream. The server answers "video" only
+  for a playlist it recorded itself, so another Stream customer's videos, or another Warpstack
+  server's, stay links.
+
+Every other video URL is a link. Members' uploads are transcoded by Stream, so viewers play
+Cloudflare's copy, never the bytes a member sent, and the original isn't downloadable. Uploads
+are optional (they need a second, Stream-only token), limited in length and per member and per
+day, and on a public server only the listed FIDs may upload, since each minute stored and
+watched is billed to the owner.
 
 ## The sealed core
 

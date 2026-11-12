@@ -6,7 +6,7 @@ import {
   AppKey, Capabilities, Cast, CastOrTombstone, Channel, EmbedMetadata, KeyHex, MessageState, Notification, Session, SessionChallenge, SignerRegistration,
   StorageUsage, User, UserSummary, ViewerLinks, ViewerReactions,
 } from './entities.ts'
-import { LIMITS, MEDIA_UPLOAD_MAX_BYTES } from './limits.ts'
+import { LIMITS, MEDIA_UPLOAD_MAX_BYTES, VIDEO_LIMITS } from './limits.ts'
 import { Cursor, page } from './pages.ts'
 
 // The routes: M1's public reads, M1.5's write, and M2's sessions, which are the session
@@ -266,6 +266,32 @@ export const contract = withPaths({
       // The body is the image itself, sent by the oRPC client as a file. Its type is read from its bytes.
       input: z.file().max(MEDIA_UPLOAD_MAX_BYTES),
       output: z.object({ url: HttpsUrl, width: z.number().int().min(1).max(10_000), height: z.number().int().min(1).max(10_000) }),
+    }),
+  },
+  video: {
+    /**
+     * Starts a video upload: a one-time URL on the deployment's own Cloudflare Stream that the
+     * device sends the file to directly. Stream refuses anything longer than
+     * `VIDEO_LIMITS.maxSeconds`. Counted per member and per deployment per day.
+     */
+    upload: call({
+      path: '/api/video', auth: 'session', cost: 'upstream',
+      errors: ['MODULE_DISABLED', 'REJECTED'],
+      output: z.object({ id: z.string().regex(/^[0-9a-f]{32}$/), uploadUrl: HttpsUrl, maxSeconds: z.literal(VIDEO_LIMITS.maxSeconds) }),
+    }),
+    /**
+     * Where an upload is: processing, ready (with the URL to embed) or failed. Only the member
+     * who started it can ask.
+     */
+    status: call({
+      path: '/api/video/{id}', auth: 'session', cost: 'upstream',
+      errors: ['MODULE_DISABLED', 'NOT_FOUND'],
+      input: z.object({ id: z.string().regex(/^[0-9a-f]{32}$/) }),
+      output: z.discriminatedUnion('state', [
+        z.object({ state: z.literal('processing') }),
+        z.object({ state: z.literal('ready'), url: HttpsUrl }),
+        z.object({ state: z.literal('failed'), reason: z.string().max(300) }),
+      ]),
     }),
   },
   meta: {

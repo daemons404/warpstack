@@ -89,6 +89,20 @@ export const EmbedMetadata = named('EmbedMetadata', openUnion([
     site: utf8(320).optional(),
     image: z.object({ media: MediaKey, width: z.number().int().min(1).max(10_000), height: z.number().int().min(1).max(10_000) }).optional(),
   }),
+  /**
+   * A video the app may play: only from Farcaster's own video servers or this deployment's own
+   * uploads. `url` is an HLS playlist. The poster, when there is one, was re-encoded like any image.
+   */
+  z.object({
+    kind: z.literal('video'),
+    url: HttpsUrl,
+    domain: z.string().min(1).max(253),
+    width: z.number().int().min(1).max(10_000).optional(),
+    height: z.number().int().min(1).max(10_000).optional(),
+    /** Seconds. */
+    duration: z.number().min(0).max(86_400).optional(),
+    poster: z.object({ media: MediaKey, width: z.number().int().min(1).max(10_000), height: z.number().int().min(1).max(10_000) }).optional(),
+  }),
   z.object({ kind: z.literal('unknown'), domain: z.string().min(1).max(253) }),
 ]))
 export type EmbedMetadata = z.infer<typeof EmbedMetadata>
@@ -140,7 +154,7 @@ export const StorageUsage = named('StorageUsage', z.object({
 }))
 export type StorageUsage = z.infer<typeof StorageUsage>
 
-export const MODULES = ['core', 'miniapps', 'wallet', 'appFid', 'webLink', 'webApprovals'] as const
+export const MODULES = ['core', 'miniapps', 'wallet', 'appFid', 'webLink', 'webApprovals', 'videoUploads'] as const
 export type Module = (typeof MODULES)[number]
 
 export const Capabilities = named('Capabilities', z.object({

@@ -91,6 +91,29 @@ CLOUDFLARE_ACCOUNT_ID=<the account ID from step 2>
 
 Don't paste the token into a chat, an issue or a commit.
 
+### 8. Optional: video uploads
+
+Videos from Farcaster play without this. It lets you and the people on your list post videos,
+stored on your own Cloudflare Stream. Skip it, and the app simply has no video button.
+
+Stream is billed separately from Workers, per minute of video stored and per minute watched,
+including when people on other apps watch your videos. Check Cloudflare's Stream pricing first.
+To keep it small, the server takes videos of up to 2 minutes, 10 a day per person and 50 a day
+in all.
+
+1. **Media → Stream**, and turn it on.
+2. **My Profile → API Tokens → Create Token → Create Custom Token.** Name it `warpstack-video`.
+   Scope: **Entire Account**. Permission: **Stream → Edit**, and nothing else. This token goes
+   to your server, so it must not be able to do more than Stream.
+3. Add it to `.env.deploy` on a line of its own:
+
+   ```
+   STREAM_API_TOKEN=<the video token>
+   ```
+
+The deploy checks it with Stream before using it. To turn video uploads off again:
+`pnpm run deploy --no-video`.
+
 ## Part 2: the deploy
 
 Run, from the project root:
@@ -142,6 +165,7 @@ and sign in with your recovery phrase. Your posts are attributed to your own FID
 | `--public` | Anyone may read and sign in, like an open Farcaster client. Not recommended for a personal server. It stays public on later deploys until you run `--private`. |
 | `--private` | Back to private after `--public`: only the listed FIDs (add `--fid` if there's no list yet). |
 | `--no-media` | No images, even if R2 is on: avatars show initials and images show as links. |
+| `--no-video` | Turn video uploads off (step 8). Videos from Farcaster still play. |
 | `--backfill-hours 2` | How much recent history a new server reads first. |
 
 ### If something goes wrong
@@ -150,6 +174,7 @@ and sign in with your recovery phrase. Your posts are attributed to your own FID
 |---|---|
 | Cloudflare refused the token | Check `.env.deploy` and the permissions in step 6. |
 | Images are off | That's fine. For images: step 5, then run it again. |
+| Cloudflare Stream refused STREAM_API_TOKEN | The token needs Stream: Edit, and Stream must be on (step 8). Or remove the line to deploy without video. |
 | `wrangler … failed` | The lines it prints say why; most often a missing permission. Run it again after fixing. |
 | Not moving yet | Wait a minute and run it again. |
 | Couldn't read the secrets | Cloudflare didn't answer; nothing was changed. Run it again. |

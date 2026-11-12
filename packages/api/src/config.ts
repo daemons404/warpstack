@@ -38,6 +38,11 @@ export const Config = z.object({
       return false
     }
   }, 'MEDIA_ORIGIN must be an https origin with no path, e.g. https://warpstack-media.you.workers.dev').optional(),
+  /** Video uploads, on the account's Cloudflare Stream; both or neither. */
+  stream: z.object({
+    account: z.string().regex(/^[0-9a-f]{32}$/, 'STREAM_ACCOUNT_ID must be a Cloudflare account ID (32 hex characters)'),
+    token: z.string().min(20, 'STREAM_API_TOKEN looks too short to be a Cloudflare API token'),
+  }).optional(),
 }).refine(c => c.acceptKeysFrom !== 'appFid' || c.appFid !== undefined, 'ACCEPT_SESSION_KEYS_FROM=appFid needs APP_FID')
   // A private deployment must say who is allowed; nothing defaults to "everyone".
   .refine(c => c.access === 'public' || c.allowedFids.length > 0 || c.appFid !== undefined,
@@ -73,6 +78,7 @@ export const parseConfig = (env: Env): Config => {
     allowedFids: (env.ALLOWED_FIDS ?? '').split(',').map(x => x.trim()).filter(Boolean).map(x => (/^[0-9]{1,12}$/.test(x) ? Number(x) : NaN)),
     mediaKey: env.MEDIA_KEY || undefined,
     mediaOrigin: env.MEDIA_ORIGIN || undefined,
+    stream: env.STREAM_ACCOUNT_ID || env.STREAM_API_TOKEN ? { account: env.STREAM_ACCOUNT_ID ?? '', token: env.STREAM_API_TOKEN ?? '' } : undefined,
   })
   if (!r.success) throw new ConfigError(`Invalid Worker config: ${r.error.issues.map(i => i.message).join('; ')}`)
   return r.data

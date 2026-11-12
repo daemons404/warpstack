@@ -10,6 +10,11 @@
 // them (avatars are initials, images are links) and says how to add them later.
 //   pnpm run deploy --public             anyone may read and sign in (an open client)
 //   pnpm run deploy --private            back to private: only the listed FIDs
+//   pnpm run deploy --no-video           turn video uploads off
+//
+// Video uploads are optional too: they're on when .env.deploy also has STREAM_API_TOKEN, a
+// second token that can do nothing but Cloudflare Stream (SETUP.md, "Video uploads"). It's
+// handed to the Worker as a secret; the deploy token never is.
 //
 // Needs .env.deploy, next to this app's package.json, with CLOUDFLARE_API_TOKEN and
 // CLOUDFLARE_ACCOUNT_ID.
@@ -43,6 +48,7 @@ const option = name => {
   return args[i].includes('=') ? args[i].split('=').slice(1).join('=') : args[i + 1]
 }
 let media = !flag('no-media')
+const noVideo = flag('no-video')
 const open = flag('public')
 const close = flag('private')
 let fids = option('fid')
@@ -66,6 +72,7 @@ if (existsSync(envFile)) {
 }
 const TOKEN = process.env.CLOUDFLARE_API_TOKEN
 const ACCOUNT = process.env.CLOUDFLARE_ACCOUNT_ID
+const STREAM_TOKEN = process.env.STREAM_API_TOKEN || null
 if (!TOKEN || !ACCOUNT) {
   early(`Put your Cloudflare API token and account ID in ${here('.env.deploy')}:
 
@@ -292,6 +299,25 @@ try {
     say((await deleteSecret(apiConfig.name, 'MEDIA_ORIGIN')) ? '  Removed MEDIA_ORIGIN: images are off' : '  Could not remove MEDIA_ORIGIN; images stay on until it is removed')
   }
   if (mediaKey) values.MEDIA_KEY = mediaKey
+
+  // Video uploads: on with a Stream-only token, checked against Stream before it's set.
+  let video = !noVideo && apiSecrets.has('STREAM_API_TOKEN')
+  if (noVideo) {
+    for (const name of ['STREAM_API_TOKEN', 'STREAM_ACCOUNT_ID']) {
+      if (apiSecrets.has(name) && !(await deleteSecret(apiConfig.name, name))) fail(`Couldn't remove ${name}; video uploads are still on. Run this again.`)
+    }
+    say('  Video uploads: off')
+  } else if (STREAM_TOKEN) {
+    const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/stream?limit=1`, { headers: { authorization: `Bearer ${STREAM_TOKEN}` } })
+      .then(async res => ({ ok: res.ok, body: await res.json().catch(() => ({})) }))
+      .catch(e => ({ ok: false, body: { errors: [{ message: String(e) }] } }))
+    if (!r.ok || r.body.success === false) {
+      fail(`Cloudflare Stream refused STREAM_API_TOKEN (${JSON.stringify(r.body.errors ?? r.body).slice(0, 200)}). It needs "Stream: Edit" on this account, and Stream must be turned on (SETUP.md, "Video uploads"). Or remove the line from .env.deploy to deploy without video.`)
+    }
+    values.STREAM_ACCOUNT_ID = ACCOUNT
+    values.STREAM_API_TOKEN = STREAM_TOKEN
+    video = true
+  }
   say(`  Setting ${Object.keys(values).join(', ')} (values not shown)`)
 
   // 6. Build and deploy.
@@ -327,6 +353,7 @@ try {
   say(`  App:     ${apiOrigin}`)
   if (media) say(`  Images:  ${mediaOrigin}`)
   if (!media) say('  Images:  off (avatars are initials, images are links)')
+  say(video ? `  Video:   uploads on (up to 2 minutes each), on your Cloudflare Stream` : '  Video:   uploads off (videos from Farcaster still play). SETUP.md, "Video uploads", turns them on')
   // What the deployment now has, not what was asked for.
   const isPublic = open || (!close && apiSecrets.has('ACCESS'))
   const who = fids ? `FIDs ${fids}` : apiSecrets.has('ALLOWED_FIDS') ? 'the FIDs already listed' : 'the app FID\'s keys'

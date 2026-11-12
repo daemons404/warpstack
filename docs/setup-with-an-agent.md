@@ -90,6 +90,9 @@ fills in recent casts over a minute or two. Images are off locally: avatars show
 2. They create `.env.deploy` in the app's folder themselves, with the token and account ID, as
    `SETUP.md` step 7 says. Check only that it has both lines, without showing values:
    `grep -c '^CLOUDFLARE_' .env.deploy` should print `2`.
+   Ask whether they want to post videos too. It's optional and billed by Cloudflare per minute
+   stored and watched: if yes, they follow `SETUP.md` step 8 themselves, which adds a second,
+   Stream-only token to `.env.deploy`. Check it the same way: `grep -c '^STREAM_API_TOKEN=' .env.deploy`.
 3. Deploy, with the FIDs from step 1:
 
    ```sh

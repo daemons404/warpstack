@@ -1,7 +1,7 @@
-import { pickPhoto, routes } from '@warpstack/app-core'
+import { pickPhoto, pickVideo, routes } from '@warpstack/app-core'
 import type { Draft, Revocation, WarpError } from '@warpstack/client'
 import {
-  useAccount, useAccountKeys, useCast, useChannel, useComposer, useFollow, useHomeFeed, useLookupFid, useMarkNotificationsSeen, useMediaOrigin, useNotifications, useUploadPhoto,
+  useAccount, useAccountKeys, useCast, useChannel, useComposer, useFollow, useHomeFeed, useLookupFid, useMarkNotificationsSeen, useMediaOrigin, useNotifications, useUploadPhoto, useUploadVideo, useVideoUploads,
   useProfileEditor, useUser, type ListState,
 } from '@warpstack/client/react'
 import type { AppKey, Cast, Notification } from '@warpstack/contract'
@@ -14,7 +14,7 @@ import {
 } from 'react-native'
 import { useKeyboardHeight, useRefresh } from './hooks.ts'
 import { useHomeTap } from './home-tap.ts'
-import { HeartIcon, PersonIcon, PhotoIcon, QuoteIcon, RecastIcon, ReplyIcon } from './icons.tsx'
+import { HeartIcon, PersonIcon, PhotoIcon, QuoteIcon, RecastIcon, ReplyIcon, VideoIcon } from './icons.tsx'
 import { Avatar, Button, CastCard, ErrorState, ListFooter, Loading, Message, nameOf } from './slots.tsx'
 import { AVATAR, HIT, radius, space, type, useBottomInset, useColors } from './theme.ts'
 
@@ -292,6 +292,20 @@ export const ComposeScreen = ({ reply, quote, channel }: { reply?: { fid: number
     setPhoto(p => (p?.uri !== picked.uri ? p : r.ok ? { ...p, state: 'ready', url: r.value.url } : { ...p, state: 'failed' }))
     if (!r.ok) setError(r.error.message)
   }
+  // One video instead of a photo, when this server takes them. It's sent to the server's
+  // Cloudflare Stream as soon as it's picked, and posting waits until Stream has processed it.
+  const videoUploads = useVideoUploads()
+  const sendVideo = useUploadVideo()
+  const [video, setVideo] = useState<{ uri: string; width: number; height: number; state: 'starting' | 'sending' | 'processing' | 'ready' | 'failed'; url?: string } | null>(null)
+  const chooseVideo = async () => {
+    setError(null)
+    const picked = await pickVideo().catch(() => null)
+    if (!picked) return
+    setVideo({ ...picked, state: 'starting' })
+    const r = await sendVideo.run({ uri: picked.uri, onStage: stage => setVideo(v => (v?.uri === picked.uri ? { ...v, state: stage } : v)) })
+    setVideo(v => (v?.uri !== picked.uri ? v : r.ok ? { ...v, state: 'ready', url: r.value.url } : { ...v, state: 'failed' }))
+    if (!r.ok) setError(r.error.message)
+  }
 
   if (account.kind !== 'signedIn') return <SignInPrompt what="post" />
   const bytes = new TextEncoder().encode(text).length
@@ -300,8 +314,10 @@ export const ComposeScreen = ({ reply, quote, channel }: { reply?: { fid: number
   const over = left < 0
   const parent: Draft['parent'] = reply ? reply : channelInfo.data ? { url: channelInfo.data.url } : undefined
   const photoReady = photo?.state === 'ready' && !!photo.url
+  const videoReady = video?.state === 'ready' && !!video.url
   const blocked = sending || unconfirmed || over || phrase || photo?.state === 'uploading' || photo?.state === 'failed'
-    || (!text.trim() && !quote && !photoReady) || (!!channel && !channelInfo.data)
+    || (!!video && !videoReady)
+    || (!text.trim() && !quote && !photoReady && !videoReady) || (!!channel && !channelInfo.data)
   const context = reply
     ? `Replying to ${parentCast.data ? `@${parentCast.data.author.username ?? `fid:${parentCast.data.fid}`}` : 'a cast'}`
     : quote ? 'Quoting a cast' : channel ? `Posting in /${channel}` : 'Posting to your followers'
@@ -309,7 +325,7 @@ export const ComposeScreen = ({ reply, quote, channel }: { reply?: { fid: number
   const post = async () => {
     if (blocked) return
     setError(null)
-    const r = await composer.run({ text, parent, quote: quote ?? undefined, images: photoReady ? [photo.url!] : undefined })
+    const r = await composer.run({ text, parent, quote: quote ?? undefined, images: photoReady ? [photo.url!] : undefined, video: videoReady ? video.url! : undefined })
     if (r.ok) router.back()
     else {
       if (r.error.kind === 'unconfirmed') setUnconfirmed(true)
@@ -344,6 +360,21 @@ export const ComposeScreen = ({ reply, quote, channel }: { reply?: { fid: number
             </Pressable>
           </View>
         )}
+        {video && (
+          <View style={styles.photo}>
+            <View style={{ width: '100%', aspectRatio: video.width && video.height ? video.width / video.height : 16 / 9, maxHeight: 360, borderRadius: radius.md, backgroundColor: c.field, alignItems: 'center', justifyContent: 'center', gap: space.sm }}>
+              <VideoIcon color={c.muted} size={28} />
+              <Text style={[type.small, { color: c.muted }]} accessibilityLiveRegion="polite">
+                {video.state === 'ready' ? 'Video ready' : video.state === 'failed' ? 'Video not uploaded' : video.state === 'processing' ? 'Processing the video…' : 'Sending the video…'}
+              </Text>
+              {(video.state === 'starting' || video.state === 'sending' || video.state === 'processing') && <ActivityIndicator color={c.accent} />}
+            </View>
+            <Pressable accessibilityRole="button" accessibilityLabel="Remove video" hitSlop={8} onPress={() => { setVideo(null); setError(null) }}
+              style={[styles.removePhoto, { backgroundColor: c.surface, borderColor: c.border }]}>
+              <Text style={{ color: c.text, fontWeight: '700' }}>✕</Text>
+            </Pressable>
+          </View>
+        )}
         {quoted.data && (
           <View style={[styles.quoted, { borderColor: c.border }]}>
             <CastCard cast={quoted.data} emphasis="ancestor" />
@@ -356,10 +387,17 @@ export const ComposeScreen = ({ reply, quote, channel }: { reply?: { fid: number
       </ScrollView>
       <View style={[styles.toolbar, { borderTopColor: c.border, backgroundColor: c.surface, paddingBottom: (keyboard > 0 ? keyboard : bottom) + space.sm }]}>
         {/* Only when this server stores images, and one per cast. */}
-        {media && !photo && Platform.OS !== 'web' && (
+        {media && !photo && !video && Platform.OS !== 'web' && (
           <Pressable accessibilityRole="button" accessibilityLabel="Add a photo" hitSlop={8} onPress={() => void choosePhoto()} disabled={sending}
             style={({ pressed }) => [styles.toolIcon, pressed && { backgroundColor: c.pressed }]}>
             <PhotoIcon color={c.muted} size={20} />
+          </Pressable>
+        )}
+        {/* Only when this server has video uploads set up; a video or a photo, not both. */}
+        {videoUploads && !photo && !video && Platform.OS !== 'web' && (
+          <Pressable accessibilityRole="button" accessibilityLabel="Add a video" hitSlop={8} onPress={() => void chooseVideo()} disabled={sending}
+            style={({ pressed }) => [styles.toolIcon, pressed && { backgroundColor: c.pressed }]}>
+            <VideoIcon color={c.muted} size={20} />
           </Pressable>
         )}
         <Text style={[type.small, { color: c.muted, flex: 1 }]} numberOfLines={1}>{context}</Text>

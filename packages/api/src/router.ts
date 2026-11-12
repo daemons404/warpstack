@@ -1,10 +1,11 @@
-import { cacheControlOf, contract, getFacts, LIMITS, MEDIA_UPLOAD_MAX_BYTES, PRE_SESSION_PATHS, type Capabilities, type Facts } from '@warpstack/contract'
+import { cacheControlOf, contract, getFacts, LIMITS, MEDIA_UPLOAD_MAX_BYTES, PRE_SESSION_PATHS, VIDEO_LIMITS, type Capabilities, type Facts } from '@warpstack/contract'
 import { implement, ORPCError } from '@orpc/server'
 import type { CastHash, Fid, Result } from '@warpstack/protocol'
 import type { Admission } from './config.ts'
 import { makeMediaToken } from './core/media-token.ts'
 import { readUpTo, type Limiters } from './front.ts'
 import { TransientError, type Media } from './media.ts'
+import type { Videos } from './videos.ts'
 import type { ChannelRegistry, Mac } from './ports.ts'
 import type { ReadError, Reads } from './reads.ts'
 import type { SessionContext, SessionError, Sessions } from './sessions.ts'
@@ -14,6 +15,8 @@ export type RouterContext = {
   reads: Reads
   /** Images and link previews; stores nothing without R2 and the Images binding. */
   media: Media
+  /** Members' videos on Stream, and which video URLs may play; uploads are off without Stream. */
+  videos: Videos
   writes: Writes
   sessions: Sessions
   capabilities: Capabilities
@@ -117,6 +120,9 @@ export const router = pub.router({
     thread: pub.cast.thread.handler(async ({ input, context }) => unwrap(await context.reads.thread(input.fid, input.hash, input.cursor))),
     embed: pub.cast.embed.handler(async ({ input, context }) => {
       const url = unwrap(await context.reads.embedUrl(input.fid, input.hash, input.index))
+      // A video plays only from Farcaster's servers or this deployment's uploads; decided without a fetch.
+      const video = await context.videos.embed(url)
+      if (video) return video as never
       try {
         return await context.media.embed(url)
       } catch (e) {
@@ -246,6 +252,33 @@ export const router = pub.router({
       const r = await context.media.storeUpload(body, context.session.fid)
       if (!r.ok) throw new ORPCError('REJECTED', { data: { reason: r.error.why.slice(0, 300) } })
       return { url: r.value.url as never, width: r.value.width, height: r.value.height }
+    }),
+  },
+  video: {
+    upload: withSession.video.upload.handler(async ({ context }) => {
+      const fid = context.session.fid
+      if (!context.videos.enabled) throw new ORPCError('MODULE_DISABLED', { message: 'Video uploads are off on this server', data: { module: 'videoUploads' } })
+      // Each video costs the owner money, so on a public server only the listed FIDs may upload.
+      if (context.admission.public && !context.admission.allowed.has(fid)) {
+        throw new ORPCError('REJECTED', { data: { reason: 'Only this server\'s own members can post videos.' } })
+      }
+      if (!(await context.limiters.WRITE_FID.limit({ key: `WRITE_FID:${fid}` })).success) throw new ORPCError('RATE_LIMITED', { data: { retryAfter: 60 } })
+      const r = await context.videos.start(fid)
+      if (r.ok) return { id: r.value.id, uploadUrl: r.value.uploadUrl as never, maxSeconds: VIDEO_LIMITS.maxSeconds }
+      switch (r.error.kind) {
+        case 'limit': throw new ORPCError('REJECTED', { data: { reason: r.error.why } })
+        case 'upstream': throw new ORPCError('UPSTREAM_UNAVAILABLE', { cause: r.error.detail })
+        default: throw new ORPCError('MODULE_DISABLED', { message: 'Video uploads are off on this server', data: { module: 'videoUploads' } })
+      }
+    }),
+    status: withSession.video.status.handler(async ({ input, context }) => {
+      const r = await context.videos.status(input.id, context.session.fid)
+      if (r.ok) return r.value.state === 'ready' ? { state: 'ready' as const, url: r.value.url as never } : r.value
+      switch (r.error.kind) {
+        case 'not_found': throw new ORPCError('NOT_FOUND')
+        case 'upstream': throw new ORPCError('UPSTREAM_UNAVAILABLE', { cause: r.error.detail })
+        default: throw new ORPCError('MODULE_DISABLED', { message: 'Video uploads are off on this server', data: { module: 'videoUploads' } })
+      }
     }),
   },
   meta: {

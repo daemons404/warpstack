@@ -112,3 +112,30 @@ export interface SyncSql {
   run(sql: string, ...params: unknown[]): void
   transaction<T>(fn: () => T): T
 }
+
+/** Where an uploaded video is: Stream works on it a while after the device sends it. */
+export type VideoState =
+  | { state: 'processing' }
+  | {
+    state: 'ready'
+    /** The HLS playlist, on the host's own playback domain. */
+    hls: string
+    /** A still from the video, to re-encode as its poster. */
+    thumbnail?: string | undefined
+    width?: number | undefined
+    height?: number | undefined
+    duration?: number | undefined
+  }
+  | { state: 'failed'; reason: string }
+
+/**
+ * Video hosting for members' uploads: Cloudflare Stream on the deployment's own account, or an
+ * in-memory fake. The device sends the file straight to the one-time URL; nothing passes
+ * through the Worker.
+ */
+export interface VideoHost {
+  /** A one-time upload URL that takes one video of at most `maxSeconds`. */
+  /** `expiresAt` is when the URL stops working, in Unix seconds. */
+  createUpload(opts: { maxSeconds: number; creator: string; expiresAt: number }): Promise<Result<{ id: string; uploadUrl: string }, UpstreamError>>
+  status(id: string): Promise<Result<VideoState, UpstreamError>>
+}
