@@ -547,6 +547,8 @@ export const useComposer = (): Action<Draft, string> => {
     if ((draft.images ?? []).some(u => !media || !u.startsWith(`${media}/img/u/`))) {
       return err(warpError('invalid', 'That image isn\'t stored on this server; attach it again.'))
     }
+    // The same for a video: only a playlist on Cloudflare Stream, as video.status returned it.
+    if (draft.video && !isStreamPlaylist(draft.video)) return err(warpError('invalid', 'That video isn\'t stored on this server; attach it again.'))
     const body = await prepareCast(draft, async username => (await api.user.byName({ username: username as never })).user.fid)
     const r = await account.write(body)
     if (r.ok) {
@@ -660,6 +662,61 @@ export const useMediaUrl = (key: string | undefined | null): string | null => {
   const token = useMediaToken()
   if (!media || !key || !/^[a-z0-9][a-z0-9/._-]{0,511}$/.test(key) || token === undefined) return null
   return token ? `${media}/img/${key}?t=${encodeURIComponent(token)}` : `${media}/img/${key}`
+}
+
+/** A playlist on Cloudflare Stream, the only video URL the composer signs. */
+const isStreamPlaylist = (url: string): boolean => {
+  try {
+    const u = new URL(url)
+    return u.protocol === 'https:' && u.port === '' && /^customer-[a-z0-9]{1,64}\.cloudflarestream\.com$/.test(u.host) && u.pathname.endsWith('/manifest/video.m3u8')
+  } catch {
+    return false
+  }
+}
+
+/** Whether this server takes video uploads: only with Cloudflare Stream set up. */
+export const useVideoUploads = (): boolean => {
+  const { api } = useWarp()
+  const q = useQuery({ ...policy, ...api.meta.capabilities.queryOptions({}) })
+  return q.data?.modules.includes('videoUploads') ?? false
+}
+
+/** How long an upload may take to process before the app stops waiting. */
+const VIDEO_PROCESSING_MS = 5 * 60_000
+const VIDEO_POLL_MS = 3_000
+
+export type VideoUploadStage = 'sending' | 'processing'
+
+/**
+ * Uploads a video picked on the device (a local file URI): the server hands out a one-time
+ * URL on its Cloudflare Stream, the file goes straight there, and this waits until Stream has
+ * transcoded it. Resolves to the playlist URL to embed. `onStage` says what it's waiting for.
+ */
+export const useUploadVideo = (): Action<{ uri: string; onStage?: (s: VideoUploadStage) => void }, { url: string }> => {
+  const { api } = useWarp()
+  return useAction(async ({ uri, onStage }) => {
+    try {
+      const { id, uploadUrl } = await api.video.upload()
+      onStage?.('sending')
+      const blob = await (await fetch(uri)).blob()
+      const form = new FormData()
+      form.append('file', new File([blob], 'video.mp4', { type: blob.type || 'video/mp4' }))
+      const sent = await fetch(uploadUrl, { method: 'POST', body: form })
+      if (!sent.ok) return err(warpError('invalid', sent.status === 413 ? 'The video is too big to upload.' : 'The video couldn\'t be uploaded. Try again.'))
+      onStage?.('processing')
+      for (let waited = 0; waited < VIDEO_PROCESSING_MS; waited += VIDEO_POLL_MS) {
+        const s = await api.video.status({ id })
+        if (s.state === 'ready') return ok({ url: s.url })
+        if (s.state === 'failed') return err(warpError('invalid', `The video couldn't be processed: ${s.reason}`))
+        await new Promise(r => setTimeout(r, VIDEO_POLL_MS))
+      }
+      return err(warpError('network', 'The video is taking too long to process. Try again in a bit.'))
+    } catch (e) {
+      const reason = typeof e === 'object' && e !== null && 'data' in e ? (e as { data?: { reason?: unknown } }).data?.reason : undefined
+      const f = toWarpError(e)
+      return err(typeof reason === 'string' ? { ...f, message: reason } : { ...f, message: 'The video couldn\'t be uploaded. Try again.' })
+    }
+  })
 }
 
 /** What one of a cast's URL embeds is: an image, a link card or unknown, read once by the server. */

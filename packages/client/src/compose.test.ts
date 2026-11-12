@@ -51,4 +51,12 @@ describe('attachments', () => {
     const body = await prepareCast({ text: 'see https://a.test and https://b.test', images: [img(1)] }, async () => null)
     expect(body.embeds).toEqual([{ url: img(1) }, { url: 'https://a.test' }])
   })
+
+  it('embeds a video first, and counts it with the quote', async () => {
+    const video = 'https://customer-abc.cloudflarestream.com/0123/manifest/video.m3u8'
+    expect(draftProblem({ video, quote })).toBeNull()
+    expect(draftProblem({ video, images: [img(1)], quote })).toMatch(/at most 2/)
+    const body = await prepareCast({ text: 'watch https://a.test', video, quote }, async () => null)
+    expect(body.embeds).toEqual([{ url: video }, { cast: quote }])
+  })
 })

@@ -17,6 +17,8 @@ import { systemClock } from './adapters/clock.ts'
 import { hostOf } from './adapters/fetchers/index.ts'
 import { admissionOf, parseConfig, type Config } from './config.ts'
 import { Media } from './media.ts'
+import { Videos } from './videos.ts'
+import { CloudflareStream } from './adapters/stream.ts'
 import type { Env } from './env.ts'
 import type { Snapchain } from './ports.ts'
 import { readOnlySnapchain } from './read-only.ts'
@@ -58,7 +60,7 @@ export const handler = new OpenAPIHandler<RouterContext>(router, {
 export const capabilitiesOf = (config: Config, origin: string, env: Pick<Env, 'MEDIA' | 'IMAGES'> = {}): Capabilities => ({
   contract: CONTRACT_VERSION,
   status: config.readOnly ? 'readOnly' : 'ok',
-  modules: ['core'],
+  modules: config.stream ? ['core', 'videoUploads'] : ['core'],
   // The media origin is named only when images can be stored and served.
   origins: { api: origin, ...(mediaReady(config, env) ? { media: config.mediaOrigin! } : {}) },
   appFid: (config.appFid ?? null) as Fid | null,
@@ -122,6 +124,7 @@ export const createApp = () => {
     const http = snapchainOf(config.snapchain)
     const snapchain = config.readOnly ? readOnlySnapchain(http) : http
     const media = mediaOf(config, c.env, new URL(c.req.url).origin)
+    const videos = new Videos({ db, clock: systemClock, media, host: config.stream ? new CloudflareStream(config.stream.account, config.stream.token) : undefined })
     // Avatars a response names that aren't stored yet are fetched after it's sent.
     const wantAvatars = media.enabled
       ? (srcs: string[]) => c.executionCtx.waitUntil(media.storeAvatars(srcs))
@@ -134,6 +137,7 @@ export const createApp = () => {
       context: {
         reads,
         media,
+        videos,
         writes,
         sessions,
         capabilities: capabilitiesOf(config, new URL(c.req.url).origin, c.env),

@@ -3,7 +3,7 @@ import Svg, { Circle, Path } from 'react-native-svg'
 // Icons, as path data from three open sources, so the app looks like the Farcaster client
 // without depending on its packages:
 //
-// - Cast actions (reply, recast, like, quote, pencil, more, photo): Octicons, as the Farcaster client
+// - Cast actions (reply, recast, like, quote, pencil, more, photo, video): Octicons, as the Farcaster client
 //   uses them. MIT License, Copyright (c) GitHub Inc. https://github.com/primer/octicons
 // - Home and notifications tabs: the Farcaster client's tab icons (40-point box, 2-point
 //   stroke, filled when selected). MIT License, Copyright (c) Merkle Manufactory Inc.
@@ -69,6 +69,20 @@ export const PersonIcon = ({ color, size = 16 }: IconProps) => (
 export const PhotoIcon = ({ color, size = 16 }: IconProps) => (
   <Svg width={size} height={size} viewBox="0 0 16 16" fill="none">
     <Path fill={color} d="M16 13.25A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25V2.75C0 1.784.784 1 1.75 1h12.5c.966 0 1.75.784 1.75 1.75ZM1.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h.94l.03-.03 6.077-6.078a1.75 1.75 0 0 1 2.412-.06L14.5 10.31V2.75a.25.25 0 0 0-.25-.25Zm12.5 11a.25.25 0 0 0 .25-.25v-.917l-4.298-3.889a.25.25 0 0 0-.344.009L4.81 13.5ZM7 6a2 2 0 1 1-3.999.001A2 2 0 0 1 7 6ZM5.5 6a.5.5 0 1 0-1 0 .5.5 0 0 0 1 0Z" />
+  </Svg>
+)
+
+export const VideoIcon = ({ color, size = 16 }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+    <Path fill={color} d="M16 3.75v8.5a.75.75 0 0 1-1.136.643L11 10.575v.675A1.75 1.75 0 0 1 9.25 13h-7.5A1.75 1.75 0 0 1 0 11.25v-6.5C0 3.784.784 3 1.75 3h7.5c.966 0 1.75.784 1.75 1.75v.675l3.864-2.318A.75.75 0 0 1 16 3.75Zm-6.5 1a.25.25 0 0 0-.25-.25h-7.5a.25.25 0 0 0-.25.25v6.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-6.5ZM11 8.825l3.5 2.1v-5.85l-3.5 2.1Z" />
+  </Svg>
+)
+
+/** The play button over a video's poster: a plain disc and triangle, drawn here. */
+export const PlayIcon = ({ color, background, size = 56 }: IconProps & { background: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 56 56" fill="none">
+    <Circle cx="28" cy="28" r="28" fill={background} />
+    <Path fill={color} d="M22 17.5v21a1 1 0 0 0 1.52.85l17-10.5a1 1 0 0 0 0-1.7l-17-10.5A1 1 0 0 0 22 17.5Z" />
   </Svg>
 )
 

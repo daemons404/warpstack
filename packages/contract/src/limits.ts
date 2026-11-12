@@ -18,3 +18,13 @@ export const LIMITS = {
 
 /** The largest image the device may upload: it resizes and re-encodes before sending, so 4 MB is plenty. */
 export const MEDIA_UPLOAD_MAX_BYTES = 4 * 1_024 * 1_024
+
+/**
+ * Video uploads, which cost the deployment's owner per minute stored and watched: the longest
+ * video, and how many a member and the whole deployment may start in a day.
+ */
+export const VIDEO_LIMITS = {
+  maxSeconds: 120,
+  perFidPerDay: 10,
+  perDeploymentPerDay: 50,
+} as const

@@ -29,6 +29,7 @@
     "expo-image": "catalog:",
     "expo-image-manipulator": "catalog:",
     "expo-image-picker": "catalog:",
+    "expo-video": "catalog:",
     "expo-linking": "~58.0.13",
     "expo-router": "catalog:",
     "expo-secure-store": "catalog:",

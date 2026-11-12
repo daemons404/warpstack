@@ -51,4 +51,8 @@ export interface Env {
   MEDIA_KEY?: string
   /** The media Worker's origin, e.g. `https://warpstack-media.you.workers.dev`. Unset: no images. */
   MEDIA_ORIGIN?: string
+  /** Optional: the Cloudflare account whose Stream holds members' videos. With STREAM_API_TOKEN, video uploads are on. */
+  STREAM_ACCOUNT_ID?: string
+  /** Secret: a Cloudflare API token with only "Stream: Edit". Unset: no video uploads. */
+  STREAM_API_TOKEN?: string
 }

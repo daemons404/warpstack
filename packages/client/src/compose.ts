@@ -11,6 +11,8 @@ export type Draft = {
   quote?: CastRef | undefined
   /** Image URLs from media.upload, on the deployment's media origin. Embedded first. */
   images?: string[] | undefined
+  /** A video's playlist URL from video.status, on the deployment's own Stream. Embedded first. */
+  video?: string | undefined
 }
 
 const MENTION = /(^|[\s(])@([a-z0-9][a-z0-9-]{0,15}(?:\.eth)?)(?![a-z0-9-]|\.[a-z0-9])/gi
@@ -23,10 +25,10 @@ const utf8 = (s: string) => new TextEncoder().encode(s).length
  * are embeds, and a cast holds at most `MESSAGE_LIMITS.embeds`; links in the text become
  * embeds only while there's room.
  */
-export const draftProblem = (draft: Pick<Draft, 'images' | 'quote'>): string | null => {
-  const attached = (draft.images?.length ?? 0) + (draft.quote ? 1 : 0)
+export const draftProblem = (draft: Pick<Draft, 'images' | 'quote' | 'video'>): string | null => {
+  const attached = (draft.video ? 1 : 0) + (draft.images?.length ?? 0) + (draft.quote ? 1 : 0)
   return attached > MESSAGE_LIMITS.embeds
-    ? `A cast holds at most ${MESSAGE_LIMITS.embeds} attachments: images and a quoted cast together.`
+    ? `A cast holds at most ${MESSAGE_LIMITS.embeds} attachments: a video, images and a quoted cast together.`
     : null
 }
 
@@ -62,6 +64,7 @@ export const prepareCast = async (draft: Draft, resolve: (username: string) => P
   const embeds: Embed[] = []
   const problem = draftProblem(draft)
   if (problem) throw new RangeError(problem)
+  if (draft.video) embeds.push({ url: draft.video })
   for (const url of draft.images ?? []) embeds.push({ url })
   if (draft.quote) embeds.push({ cast: draft.quote })
   for (const url of new Set(draft.text.match(URL_IN_TEXT) ?? [])) {

@@ -5675,6 +5675,71 @@
                       "properties": {
                         "kind": {
                           "type": "string",
+                          "const": "video"
+                        },
+                        "url": {
+                          "type": "string",
+                          "maxLength": 2048,
+                          "pattern": "^https:\\/\\/[^/\\\\]"
+                        },
+                        "domain": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 253
+                        },
+                        "width": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 10000
+                        },
+                        "height": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 10000
+                        },
+                        "duration": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 86400
+                        },
+                        "poster": {
+                          "type": "object",
+                          "properties": {
+                            "media": {
+                              "type": "string",
+                              "pattern": "^[a-z0-9][a-z0-9/._-]{0,511}$"
+                            },
+                            "width": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 10000
+                            },
+                            "height": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 10000
+                            }
+                          },
+                          "required": [
+                            "media",
+                            "width",
+                            "height"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "url",
+                        "domain"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
                           "const": "unknown"
                         },
                         "domain": {
@@ -5695,7 +5760,7 @@
                         "kind": {
                           "type": "string",
                           "maxLength": 64,
-                          "pattern": "^(?!(?:image|link|unknown)$)"
+                          "pattern": "^(?!(?:image|link|video|unknown)$)"
                         }
                       },
                       "required": [
@@ -10297,6 +10362,360 @@
         "x-warpstack-cost": "db"
       }
     },
+    "/api/video": {
+      "post": {
+        "operationId": "video.upload",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{32}$"
+                    },
+                    "uploadUrl": {
+                      "type": "string",
+                      "maxLength": 2048,
+                      "pattern": "^https:\\/\\/[^/\\\\]"
+                    },
+                    "maxSeconds": {
+                      "type": "number",
+                      "const": 120
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "uploadUrl",
+                    "maxSeconds"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request failed its schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/BadInput"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UndefinedError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Unauthorized"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UndefinedError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The message was refused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Rejected"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UndefinedError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/RateLimited"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UndefinedError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "This deployment does not have that module",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ModuleDisabled"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UndefinedError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The deployment is temporarily read-only, The Snapchain node is unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ReadOnly"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UpstreamUnavailable"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UndefinedError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-warpstack-auth": "session",
+        "x-warpstack-fresh": "0s",
+        "x-warpstack-cost": "upstream"
+      }
+    },
+    "/api/video/{id}": {
+      "post": {
+        "operationId": "video.status",
+        "parameters": [
+          {
+            "in": "path",
+            "required": true,
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "state": {
+                          "type": "string",
+                          "const": "processing"
+                        }
+                      },
+                      "required": [
+                        "state"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "state": {
+                          "type": "string",
+                          "const": "ready"
+                        },
+                        "url": {
+                          "type": "string",
+                          "maxLength": 2048,
+                          "pattern": "^https:\\/\\/[^/\\\\]"
+                        }
+                      },
+                      "required": [
+                        "state",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "state": {
+                          "type": "string",
+                          "const": "failed"
+                        },
+                        "reason": {
+                          "type": "string",
+                          "maxLength": 300
+                        }
+                      },
+                      "required": [
+                        "state",
+                        "reason"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request failed its schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/BadInput"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UndefinedError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Unauthorized"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UndefinedError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/NotFound"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UndefinedError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/RateLimited"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UndefinedError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "This deployment does not have that module",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ModuleDisabled"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UndefinedError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The deployment is temporarily read-only, The Snapchain node is unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ReadOnly"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UpstreamUnavailable"
+                    },
+                    {
+                      "$ref": "#/components/schemas/UndefinedError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-warpstack-auth": "session",
+        "x-warpstack-fresh": "0s",
+        "x-warpstack-cost": "upstream"
+      }
+    },
     "/api/meta": {
       "get": {
         "operationId": "meta.capabilities",
@@ -10342,13 +10761,14 @@
                               "wallet",
                               "appFid",
                               "webLink",
-                              "webApprovals"
+                              "webApprovals",
+                              "videoUploads"
                             ]
                           },
                           {
                             "type": "string",
                             "maxLength": 64,
-                            "pattern": "^(?!(?:core|miniapps|wallet|appFid|webLink|webApprovals)$)"
+                            "pattern": "^(?!(?:core|miniapps|wallet|appFid|webLink|webApprovals|videoUploads)$)"
                           }
                         ]
                       }

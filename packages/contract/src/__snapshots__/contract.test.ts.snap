@@ -31,6 +31,8 @@ exports[`OpenAPI > documents every route with its facts as extensions 1`] = `
   "/api/users/{fid}/followers",
   "/api/users/{fid}/following",
   "/api/users/{fid}/storage",
+  "/api/video",
+  "/api/video/{id}",
   "/api/viewer/channels",
   "/api/viewer/links",
   "/api/viewer/reactions",
