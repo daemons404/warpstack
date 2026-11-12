@@ -14,7 +14,7 @@ import UIKit
 // The boxes are secure input (the system keyboard only, no autocorrect, suggestions or
 // learning) and there's deliberately no way to reveal the words: shown, they'd be text that
 // screenshots, screen recording and third-party keyboards can reach. Every word is wiped when
-// the app leaves the foreground, and a paste empties the clipboard.
+// the app goes to the background, and a paste empties the clipboard.
 
 /// One numbered box: a key-input view that keeps no text of its own.
 final class WordBox: UIControl, UIKeyInput {
@@ -221,7 +221,10 @@ final class VaultSheet: UIViewController {
       stack.trailingAnchor.constraint(equalTo: scroll.frameLayoutGuide.trailingAnchor, constant: -20),
     ])
 
-    NotificationCenter.default.addObserver(self, selector: #selector(resignedActive), name: UIApplication.willResignActiveNotification, object: nil)
+    // Leaving the app, not merely losing focus: the system's "Allow Paste" prompt, Control
+    // Center and a notification banner all resign active too, and wiping on those emptied the
+    // boxes right after a paste.
+    NotificationCenter.default.addObserver(self, selector: #selector(enteredBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
     applyLength()
   }
 
@@ -236,7 +239,7 @@ final class VaultSheet: UIViewController {
     super.viewDidDisappear(animated)
     guard let done = completion else { return }
     completion = nil
-    NotificationCenter.default.removeObserver(self, name: UIApplication.willResignActiveNotification, object: nil)
+    NotificationCenter.default.removeObserver(self, name: UIApplication.didEnterBackgroundNotification, object: nil)
     phrase.clear()
     done(false)
   }
@@ -336,7 +339,7 @@ final class VaultSheet: UIViewController {
 
   /// Leaving the app wipes every word, so the phrase never waits in the background. Only
   /// while the sheet is open: once approved, signing owns the buffer and wipes it when done.
-  @objc private func resignedActive() {
+  @objc private func enteredBackground() {
     guard completion != nil else { return }
     phrase.clear()
     refresh()
@@ -356,7 +359,7 @@ final class VaultSheet: UIViewController {
     completion = nil
     // From here the buffer is the signer's (or already wiped): the app going to the background
     // during the dismissal or the signing no longer clears it out from under the signature.
-    NotificationCenter.default.removeObserver(self, name: UIApplication.willResignActiveNotification, object: nil)
+    NotificationCenter.default.removeObserver(self, name: UIApplication.didEnterBackgroundNotification, object: nil)
     view.endEditing(true)
     dismiss(animated: true) { done(approved) }
   }

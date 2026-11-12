@@ -191,9 +191,11 @@ phone; Snapchain is the database.
 ## Run it here
 
 \`\`\`sh
-cp .dev.vars.example .dev.vars    # then fill it in: openssl rand -hex 32 makes a key
-pnpm dev                          # the server and web app on localhost, no Cloudflare account
+cp .dev.vars.example .dev.vars
 \`\`\`
+
+Fill in \`.dev.vars\` (\`openssl rand -hex 32\` makes a key), then run \`pnpm dev\`: the server
+and web app on localhost, with no Cloudflare account.
 
 ## Your own server
 

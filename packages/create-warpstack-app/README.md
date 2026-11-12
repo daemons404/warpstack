@@ -16,9 +16,11 @@ Then:
 
 ```sh
 cd my-app
-cp .dev.vars.example .dev.vars    # fill it in: openssl rand -hex 32 makes a key
-pnpm dev                          # your server and web app on localhost, no Cloudflare account
+cp .dev.vars.example .dev.vars
 ```
+
+Fill in `.dev.vars` (`openssl rand -hex 32` makes a key), then run `pnpm dev`: your server and
+web app on localhost, with no Cloudflare account.
 
 Your own server: the app's `SETUP.md` (about ten minutes, then `pnpm run deploy --fid <your FID>`).
 The iPhone app needs Xcode and Rust: `EXPO_PUBLIC_API_URL=<your server> pnpm run ios:release`.

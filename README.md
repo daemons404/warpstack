@@ -65,9 +65,17 @@ which only you ever type, into the phone.
 
 ```sh
 pnpm install
-pnpm check                                  # typecheck, lint and every test, offline
+pnpm check
 cp apps/app/.dev.vars.example apps/app/.dev.vars
-pnpm dev                                    # the server and web app on localhost, no Cloudflare account
+```
+
+`pnpm check` runs the typecheck, lint and every test, offline. Then fill in `apps/app/.dev.vars`:
+a new key each for `CURSOR_MAC_KEY` and `SESSION_MAC_KEY` (`openssl rand -hex 32` makes one),
+and your FID in `ALLOWED_FIDS`. Start the server and web app on localhost, with no Cloudflare
+account:
+
+```sh
+pnpm dev
 ```
 
 **Your own server:** [`apps/app/SETUP.md`](apps/app/SETUP.md) walks through it: about ten

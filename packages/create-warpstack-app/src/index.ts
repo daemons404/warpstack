@@ -132,10 +132,11 @@ if (!flag('no-install')) {
 }
 
 console.log(`
-Next:
+Next, run your server and web app on localhost, with no Cloudflare account:
   cd ${shown}${installed ? '' : '\n  pnpm install'}
-  cp .dev.vars.example .dev.vars     then fill it in (openssl rand -hex 32 makes a key)
-  pnpm dev                           your server and web app on localhost, no Cloudflare account
+  cp .dev.vars.example .dev.vars
+Fill in .dev.vars (openssl rand -hex 32 makes a key), then:
+  pnpm dev
 
 Your own server: SETUP.md (about ten minutes, then pnpm run deploy --fid <your FID>)
 iPhone: needs Xcode and Rust; EXPO_PUBLIC_API_URL=<your server> pnpm run ios:release
