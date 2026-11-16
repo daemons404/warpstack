@@ -52,13 +52,30 @@ pnpm create warpstack-app my-app
 That's a complete client and its server in a folder of your own, with the building blocks from
 npm. It walks you through the rest; so does its `SETUP.md`.
 
+**Or have an agent do it.** Give your coding agent (Claude Code, Codex, Cursor…) this:
+
+> Set up a Warpstack app for me by following
+> https://github.com/daemons404/warpstack/blob/main/docs/setup-with-an-agent.md
+
+It asks you for the app's name, your Farcaster username and the rest before it starts, and stops
+where a step needs you: your Cloudflare account, Apple's signing, and your recovery phrase,
+which only you ever type, into the phone.
+
 ## Run this repository
 
 ```sh
 pnpm install
-pnpm check                                  # typecheck, lint and every test, offline
+pnpm check
 cp apps/app/.dev.vars.example apps/app/.dev.vars
-pnpm dev                                    # the server and web app on localhost, no Cloudflare account
+```
+
+`pnpm check` runs the typecheck, lint and every test, offline. Then fill in `apps/app/.dev.vars`:
+a new key each for `CURSOR_MAC_KEY` and `SESSION_MAC_KEY` (`openssl rand -hex 32` makes one),
+and your FID in `ALLOWED_FIDS`. Start the server and web app on localhost, with no Cloudflare
+account:
+
+```sh
+pnpm dev
 ```
 
 **Your own server:** [`apps/app/SETUP.md`](apps/app/SETUP.md) walks through it: about ten

@@ -44,7 +44,7 @@ things a browser or a server can't:
   browsers are read-only until they can be linked from the phone.
 
 The vault is **transient**: the phrase is used once to register the app key, then wiped. It's
-also wiped on cancel and when the app leaves the foreground. There is no way to reveal it.
+also wiped on cancel and when the app goes to the background. There is no way to reveal it.
 
 ## Why Rust
 

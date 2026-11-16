@@ -1,6 +1,6 @@
 {
   "name": "create-warpstack-app",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Create a Warpstack app: a sovereign Farcaster client for iPhone and the web, with its own server.",
   "type": "module",
   "license": "MIT",

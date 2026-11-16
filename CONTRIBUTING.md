@@ -33,8 +33,10 @@ doors open.
 
 ```sh
 pnpm install
-pnpm check      # typecheck, lint and every test, offline, in under a minute
+pnpm check
 ```
+
+`pnpm check` runs the typecheck, lint and every test, offline, in under a minute.
 
 Run `pnpm check` before every commit. If you touch the Rust vault, also run
 `pnpm --filter @warpstack/wallet test:native`.
