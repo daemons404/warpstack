@@ -25,8 +25,8 @@ enforced by a check (a test, a lint rule or CI), not by review.
    rotatable.
 3. **Keys are separated by what they risk.** The recovery phrase owns the account and is used
    only to add or remove keys. A separate app key posts, with only the scopes it needs. Every
-   key added later gets its own job and nothing more. Losing the most exposed key never costs
-   the account.
+   other kind of key, such as a future wallet key, gets its own job and nothing more. Losing the
+   most exposed key never costs the account.
 4. **The security-critical core is small, hardened and built on trusted open source.** The
    sealed core is the code that signs, decides what is signed, decides who can act as a user,
    or fetches untrusted content. It is tested against outside reference vectors that agents
@@ -56,8 +56,9 @@ enforced by a check (a test, a lint rule or CI), not by review.
 11. **Cloudflare, and Miniflare locally.** Workers, Durable Objects, D1, R2 and Images, each
     behind a port. Local hosting never needs a Cloudflare account.
 12. **The cost budget is a design constraint.** Every route declares a cost class, every
-    billable operation has a named limit, and upstream accounts are capped. A feature that
-    breaks the budget waits for a cheaper design.
+    billable operation has a named limit, and upstream accounts are capped where the provider
+    allows, with an alert where it doesn't. A feature that breaks the budget waits for a cheaper
+    design.
 
 **Code and tooling**
 
