@@ -14,46 +14,58 @@ enforced by a check (a test, a lint rule or CI), not by review.
 **Purpose**
 
 1. **Simple, feature-complete building blocks for any kind of client.** A social app, a
-   single-channel community or an agent's client is assembled from the same blocks.
+   single-channel community, a wallet-first app or an agent's client is assembled from the same
+   blocks. Each block does one job behind a small public API, and works without the blocks above
+   it.
 
 **Trust and security** (more in [`security.md`](security.md))
 
 2. **Users hold their keys and sign on their own device.** The server never holds a key that
-   can act as a user.
+   can act as a user or spend a user's funds. Its own secrets are few, named, scoped and
+   rotatable.
 3. **Keys are separated by what they risk.** The recovery phrase owns the account and is used
-   only to add or remove a key. A separate app key posts, with only the scopes it needs.
+   only to add or remove keys. A separate app key posts, with only the scopes it needs. Every
+   key added later gets its own job and nothing more. Losing the most exposed key never costs
+   the account.
 4. **The security-critical core is small, hardened and built on trusted open source.** The
-   sealed core changes only with a human's approval and is tested against outside reference
-   vectors.
-5. **Nothing is signed blind.** Native code decodes what it signs and refuses what it can't
-   explain.
-6. **Untrusted content is handled once, on the server, behind strict limits.** A phone never
-   loads a URL someone posted.
+   sealed core is the code that signs, decides what is signed, decides who can act as a user,
+   or fetches untrusted content. It is tested against outside reference vectors that agents
+   can't rewrite, and changes only with a human's approval.
+5. **Nothing is signed blind.** Native code decodes what it signs from the exact bytes, and
+   refuses what it can't explain in plain words. The vault signs only an allowlist of Farcaster
+   typed data, checked field by field.
+6. **Untrusted content is handled once, on the server, behind strict limits.** Links, images
+   and metadata are fetched once by the server, sanitized and cached. A phone never fetches a
+   URL someone posted, parses attacker-chosen HTML or reveals its IP to whoever posted a link.
 
 **Architecture**
 
 7. **Ports and adapters.** A boundary counts only if two implementations pass the same tests,
    usually a real adapter and an in-memory fake.
 8. **One typed contract; everything else is derived from it.** Handlers, the client, query
-   keys, cache rules and rate limits follow from one file.
+   keys, cache rules, rate limits and cost classes follow from one file. The contract changes
+   only compatibly, because app builds stay on phones for months.
 9. **Snapchain is the database.** Everything the server stores is a rebuildable cache, except
-   a short list of per-user state.
+   a short inventory of per-user state, uploads and takedowns, each with a stated loss policy.
 
 **Running it**
 
 10. **Minimal dependencies; extras through optional adapters.** The base is a Snapchain node and
-    somewhere to run a Worker. A missing adapter turns a feature off with a clear message; it
+    somewhere to run a Worker. A missing adapter turns its feature off with a clear message; it
     never breaks the app.
 11. **Cloudflare, and Miniflare locally.** Workers, Durable Objects, D1, R2 and Images, each
     behind a port. Local hosting never needs a Cloudflare account.
-12. **The cost budget is a design constraint.** Every route declares a cost class.
+12. **The cost budget is a design constraint.** Every route declares a cost class, every
+    billable operation has a named limit, and upstream accounts are capped. A feature that
+    breaks the budget waits for a cheaper design.
 
 **Code and tooling**
 
 13. **A few best-in-class dependencies, one per job.** Hono, Zod 4, oRPC, TanStack Query, Expo,
-    noble and scure in TypeScript, alloy in Rust.
-14. **Strict, meaningful types everywhere.** Branded domain types, parsing at every boundary,
-    errors as values.
+    noble and scure in TypeScript, alloy in Rust. A new dependency needs a written decision
+    that names its job.
+14. **Strict, meaningful types everywhere.** Strict TypeScript, branded domain types and units,
+    parsing at every boundary, errors as values, illegal states unrepresentable.
 15. **Tooling guides agents to quality.** Types, lint rules, fakes and a fast offline
     `pnpm check` steer agents; guardrails only a human can loosen protect what agents must not
     change alone.
