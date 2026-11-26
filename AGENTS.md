@@ -11,7 +11,7 @@ Warpstack is a set of simple, feature-complete building blocks for Farcaster cli
 ## Rules that decide
 
 - When principles conflict, the order is: user safety, then user ownership, then running cost, then convenience.
-- The sealed core is `packages/protocol`, `packages/wallet` (with its reference vectors) and `packages/api/src/adapters/fetchers`. Changes there need a human's approval.
+- The sealed core is `packages/protocol`, `packages/wallet` (with its reference vectors), `packages/api/src/adapters/fetchers`, and the files `CODEOWNERS` lists under "What decides who can act as a user, and what the server will fetch". They are sealed because they sign, decide what is signed, decide who can act as a user, or fetch untrusted content. Changes there need a human's approval.
 - Anything listed under "Not built yet" in `docs/architecture.md` is out of scope unless the task says otherwise.
 - If the docs and the code disagree, or something you need is missing, say so and propose a fix rather than guessing.
 
