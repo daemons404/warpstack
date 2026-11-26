@@ -7,7 +7,7 @@ import type { HubEvent } from '../src/core/snapchain-types.ts'
 import type { Cursor } from '../src/ports.ts'
 import { block, castAdd, hash, merge, prune, reaction, remove, revoke, userData } from './build.ts'
 import { recordedPage } from './fixtures.ts'
-import { MemorySql } from './sqlite.ts'
+import { MemorySql, indexSnapshot as snapshot } from './sqlite.ts'
 
 const SHARD = 1 as ShardIndex
 const T = 1_793_000_000
@@ -28,16 +28,6 @@ const applyAll = async (w: SqlIndexWriter, pages: HubEvent[][]) => {
     expect(r.ok).toBe(true)
   }
 }
-
-const snapshot = async (db: MemorySql) => ({
-  casts: await db.all('SELECT hash, fid, ts, reply, parent_hash, channel, text, state FROM casts ORDER BY hash'),
-  recasts: await db.all('SELECT * FROM recasts ORDER BY hash'),
-  // Counts as readers see them: a missing row and an all-zero row both mean zero. Deltas that
-  // cancel within one page write no row; split across pages, they leave a zero row behind.
-  counts: await db.all(`SELECT hash, max(0, likes) likes, max(0, recasts) recasts, max(0, replies) replies FROM cast_counts
-                        WHERE likes <> 0 OR recasts <> 0 OR replies <> 0 ORDER BY hash`),
-  users: await db.all('SELECT fid, username, display, pfp FROM users ORDER BY fid'),
-})
 
 describe('the ingestion fold', () => {
   it('adds a cast, counts its replies, likes and recasts, and subtracts exactly what the node removes', async () => {
