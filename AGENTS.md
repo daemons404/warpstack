@@ -20,6 +20,7 @@ Warpstack is a set of simple, feature-complete building blocks for Farcaster cli
 - `pnpm check` runs typecheck, lint and tests in seconds with no network or secrets. Run it before every commit.
 - `pnpm dev` exports the Expo app for the web and runs the Worker locally on Miniflare against the public Snapchain node, with no Cloudflare account (copy `apps/app/.dev.vars.example` to `.dev.vars` first). Images are off there: avatars are initials and image embeds are links. `pnpm dev:remote` adds images through the remote Images binding and needs a Cloudflare login. Local hosting must never depend on a Cloudflare account. `pnpm web` runs Expo's dev server for the web; `pnpm --filter @warpstack/app ios` builds the phone app.
 - `pnpm check` also runs the Miniflare suite (`pnpm test:workers`), which runs the Worker against real D1 semantics locally.
+- In an Amp orb, `.agents/setup` installs dependencies and writes a local `.dev.vars`, and `amp orb services ensure` runs `pnpm dev` behind a portal (`.amp/services.yaml`).
 - Packages are TypeScript source with no build step; Wrangler and Vite bundle them.
 - The design rules are lint rules: no `Date.now`, `Math.random` or `crypto.randomUUID` in core code; `core/` never imports `adapters/`; no `fetch` outside the fetchers and fixed-host adapters; `app-core` never imports `ui`. Don't disable a rule to get past it; fix the boundary.
 - New dependencies are installed only once they are 7 days old (`minimumReleaseAge` in `pnpm-workspace.yaml`).

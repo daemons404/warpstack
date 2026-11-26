@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Prepares a fresh Amp orb: dependencies, and local secrets for `pnpm dev`. Safe to rerun.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+step() { echo "▸ $1 ($(date +%T))"; }
+
+step "corepack and pnpm"
+corepack enable >/dev/null 2>&1 || true
+
+step "pnpm install"
+pnpm install --frozen-lockfile
+
+# The orb's dev server: random keys, open reads against the public node, nothing real to protect.
+vars=apps/app/.dev.vars
+if [ ! -f "$vars" ]; then
+  step "writing $vars"
+  sed -e "s/^CURSOR_MAC_KEY=.*/CURSOR_MAC_KEY=$(openssl rand -hex 32)/" \
+      -e "s/^SESSION_MAC_KEY=.*/SESSION_MAC_KEY=$(openssl rand -hex 32)/" \
+      -e 's/^# ACCESS=public/ACCESS=public/' \
+      apps/app/.dev.vars.example > "$vars"
+fi
+
+step "done"

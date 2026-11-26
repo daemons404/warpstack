@@ -53,3 +53,6 @@ wrangler.nomedia.jsonc
 
 # Built by packages/create-warpstack-app/scripts/build-template.mjs from apps/app.
 packages/create-warpstack-app/template/
+
+# Amp orb scratch files and artifacts
+.amp/in/
