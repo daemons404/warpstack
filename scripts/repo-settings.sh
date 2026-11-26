@@ -1,5 +1,5 @@
 #!/bin/sh
-# The release repository's settings, as code (Phase 3). Prints what it would change; with
+# This repository's settings, as code (Phase 3). Prints what it would change; with
 # --apply, changes them through the GitHub API with your `gh` login (you need admin on the repo).
 #
 #   sh scripts/repo-settings.sh                 # dry run against daemons404/warpstack
