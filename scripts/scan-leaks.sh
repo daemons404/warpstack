@@ -1,7 +1,7 @@
 #!/bin/sh
 # Fails if a tree holds something that must never be published (Phase 4): local paths, private
-# links, keys and tokens, real deployment IDs, or files that stay private. Runs on the release
-# export before every commit, and in CI on every PR.
+# links, keys and tokens, real deployment IDs, or files that stay private. This repository is
+# public, so CI runs it on every PR.
 #
 #   sh scripts/scan-leaks.sh [dir]        # default: the repository root
 #
@@ -19,13 +19,30 @@ cd "$dir"
 found=0
 fail() { echo "  ✗ $1" >&2; found=1; }
 
-# Files that are tracked in the private working repo but must never be published.
-for p in .agents videos docs/proposals docs/design docs/milestones.md .env .env.deploy apps/app/.env.deploy apps/app/.dev.vars apps/app/wrangler.deploy.jsonc .leak-patterns.local; do
-  [ -e "$p" ] && fail "$p must not be published"
+# At a repository's root only what would be committed counts, so ignored local files such as
+# .dev.vars don't fail it. Anywhere else, such as an unpacked tarball, every file counts.
+skip_dirs="node_modules .git target dist .expo .wrangler ios android"
+if [ "$(git rev-parse --show-toplevel 2>/dev/null)" = "$(pwd -P)" ]; then
+  files() { git ls-files -co --exclude-standard -- "$@"; }
+  search() { # grep flags and a pattern file; prints path:line:match
+    set -- "$@" -- . ':(exclude)scripts/scan-leaks.sh'
+    for d in $skip_dirs; do set -- "$@" ":(exclude,glob)**/$d/**"; done
+    git grep --untracked -In "$@" 2>/dev/null
+  }
+else
+  files() { find "${@:-.}" -path ./node_modules -prune -o -path ./.git -prune -o -print 2>/dev/null; }
+  search() {
+    for d in $skip_dirs; do set -- "$@" --exclude-dir="$d"; done
+    grep -rIn "$@" --exclude=scan-leaks.sh . 2>/dev/null
+  }
+fi
+
+# Files that must never be committed here.
+for p in videos docs/proposals docs/design docs/milestones.md .env .env.deploy apps/app/.env.deploy apps/app/.dev.vars apps/app/wrangler.deploy.jsonc .leak-patterns.local; do
+  [ -n "$(files "$p")" ] && fail "$p must not be published"
 done
-find . -path ./node_modules -prune -o -path ./.git -prune -o \( -name '*.pem' -o -name '*.p8' -o -name '*.p12' -o -name '*.mobileprovision' -o -name 'id_rsa*' -o -name 'id_ed25519*' -o -name '.DS_Store' \) -print | while read -r f; do
-  echo "  ✗ $f must not be published" >&2
-done | grep -q . && found=1
+keys=$(files | grep -E '(^|/)([^/]*\.(pem|p8|p12|mobileprovision)|id_rsa[^/]*|id_ed25519[^/]*|\.DS_Store)$' || true)
+[ -n "$keys" ] && { printf '%s\n' "$keys" | sed 's/^\(.*\)$/  ✗ \1 must not be published/' >&2; found=1; }
 
 patterns=$(mktemp)
 trap 'rm -f "$patterns"' EXIT
@@ -56,13 +73,10 @@ if [ -f "$values/apps/app/wrangler.jsonc" ]; then
 fi
 
 # The all-zero database ID is the committed placeholder, so it's allowed.
-hits=$(grep -rInE -f "$patterns" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=target --exclude-dir=dist \
-  --exclude-dir=.expo --exclude-dir=.wrangler --exclude-dir=ios --exclude-dir=android --exclude=scan-leaks.sh . 2>/dev/null \
-  | grep -v '"database_id": "00000000-0000-0000-0000-000000000000"' || true)
+hits=$(search -E -f "$patterns" | grep -v '"database_id": "00000000-0000-0000-0000-000000000000"' || true)
 echo "scan-leaks: $(wc -l < "$literals" | tr -d ' ') deployment value(s) to look for"
 if [ -s "$literals" ]; then
-  more=$(grep -rInF -f "$literals" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=target --exclude-dir=dist \
-    --exclude-dir=.expo --exclude-dir=.wrangler --exclude-dir=ios --exclude-dir=android . 2>/dev/null || true)
+  more=$(search -F -f "$literals" || true)
   hits=$(printf '%s\n%s' "$hits" "$more" | grep . || true)
 fi
 if [ -n "$hits" ]; then

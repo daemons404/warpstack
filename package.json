@@ -13,6 +13,7 @@
     "lint": "eslint .",
     "test": "vitest run --project unit",
     "test:workers": "pnpm --filter @warpstack/api test:workers",
+    "sim": "SIM_RUNS=${SIM_RUNS:-2000} vitest run --project unit packages/api/test/sim.test.ts",
     "dev": "pnpm --filter @warpstack/app dev",
     "deploy": "pnpm --filter @warpstack/app run deploy",
     "web": "pnpm --filter @warpstack/app web",

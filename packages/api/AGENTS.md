@@ -10,3 +10,4 @@ The Cloudflare backend: one Hono Worker serving the contract through oRPC, per-s
 - The Worker holds no key that can act as a user.
 - All Snapchain access goes through `snapchainOf(config.snapchain)`: one `HttpSnapchain`, or a `PooledSnapchain` when `SNAPCHAIN_URL` lists several nodes (failover on `unavailable`, a breaker per node, writes to two). The Worker and both Durable Objects read the same config, so settings live there, not in `createApp` options.
 - `RETENTION_DAYS` (default 28, at most 90) sets how long the index keeps casts: the daily prune and the coverage reads both use it.
+- `test/sim.test.ts` simulates ingestion under faults (nodes down or lagging, short pages, D1 failing around a commit, eviction, two instances at once) and compares the index with an in-order model. Run `pnpm sim` after changing ingestion, the fold, the index writer or the pool; extend it when you add a fault ingestion must survive.

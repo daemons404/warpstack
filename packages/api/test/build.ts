@@ -44,7 +44,7 @@ export const userData = (o: { fid: number; ts: number; type: string; value: stri
   data: { type: 'MESSAGE_TYPE_USER_DATA_ADD', fid: o.fid, timestamp: fcTime(o.ts), userDataBody: { type: o.type, value: o.value } },
 })
 
-const removeOf = (m: Message, ts: number): Message => ({
+export const removeOf = (m: Message, ts: number): Message => ({
   hash: hash(),
   data: { type: m.data.type.replace('_ADD', '_REMOVE'), fid: m.data.fid, timestamp: fcTime(ts) },
 })

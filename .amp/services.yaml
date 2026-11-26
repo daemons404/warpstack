@@ -1,0 +1,9 @@
+services:
+  app:
+    # The web export and the Worker on Miniflare, against the public Snapchain node.
+    command: pnpm dev --port "$PORT"
+    health: /_ops/status
+    portal:
+      url: /
+      title: Warpstack
+      description: Local Worker and web app. Browsers are read-only.

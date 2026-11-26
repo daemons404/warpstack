@@ -39,6 +39,17 @@ export class MemorySql implements Sql {
   }
 }
 
+/** The index as readers see it, for comparing two ingestion runs. */
+export const indexSnapshot = async (db: MemorySql) => ({
+  casts: await db.all('SELECT hash, fid, ts, reply, parent_hash, channel, text, state FROM casts ORDER BY hash'),
+  recasts: await db.all('SELECT * FROM recasts ORDER BY hash'),
+  // Counts as readers see them: a missing row and an all-zero row both mean zero. Deltas that
+  // cancel within one page write no row; split across pages, they leave a zero row behind.
+  counts: await db.all(`SELECT hash, max(0, likes) likes, max(0, recasts) recasts, max(0, replies) replies FROM cast_counts
+                        WHERE likes <> 0 OR recasts <> 0 OR replies <> 0 ORDER BY hash`),
+  users: await db.all('SELECT fid, username, display, pfp FROM users ORDER BY fid'),
+})
+
 /** node:sqlite doesn't bind `?NNN` parameters; D1 does. Rewrite them as named ones. */
 const numbered = (sql: string, params: readonly unknown[]): [string, unknown[]] => {
   if (!/\?\d/.test(sql)) return [sql, [...params]]

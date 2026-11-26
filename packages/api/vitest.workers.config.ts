@@ -8,7 +8,11 @@ export default defineConfig(async () => {
   return {
     plugins: [cloudflareTest({
       wrangler: { configPath: './wrangler.test.jsonc' },
-      miniflare: { bindings: { TEST_MIGRATIONS: migrations } },
+      miniflare: {
+        bindings: { TEST_MIGRATIONS: migrations },
+        // No network: every outbound request gets a 503, which the adapters read as unavailable.
+        outboundService: () => new Response('no network in tests', { status: 503 }),
+      },
     })],
     test: {
       include: ['test/workers/**/*.workers.test.ts'],
